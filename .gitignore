@@ -1,0 +1,6 @@
+$ cat .gitignore
+*.bak
+*.dep
+*.Romas
+*.krivko
+bin/
