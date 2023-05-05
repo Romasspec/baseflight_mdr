@@ -34,6 +34,19 @@ static uint32_t disarmTime = 0;
 uint8_t dynP8[3], dynI8[3], dynD8[3];
 uint8_t rcOptions[CHECKBOXITEMS];
 
+// **********************
+// GPS
+// **********************
+int32_t GPS_coord[2];
+int32_t GPS_home[3];
+uint8_t GPS_numSat;
+uint16_t GPS_distanceToHome;        // distance to home point in meters
+int16_t GPS_directionToHome;        // direction to home or hol point in degrees
+uint16_t GPS_altitude, GPS_speed;   // altitude in 0.1m and speed in 0.1m/s
+uint8_t GPS_update = 0;             // it's a binary toogle to distinct a GPS position update
+uint16_t GPS_ground_course = 0;     // degrees * 10
+
+
 void annexCode(void)
 {
 	int32_t axis, prop1, prop2;

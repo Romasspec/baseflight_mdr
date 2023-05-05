@@ -5,6 +5,17 @@
 
 #define  VERSION  231
 
+
+//#define LAT  0
+//#define LON  1
+//#define ALT  2
+
+enum {
+	LAT = 0,
+	LON,
+	ALT
+};
+
 #define RC_CHANS    (6)
 
 typedef enum MultiType {
@@ -30,12 +41,23 @@ enum {
 enum {
     PIDROLL,
     PIDPITCH,
-    PIDYAW,    
+    PIDYAW,
+    PIDALT,
+    PIDPOS,
+    PIDPOSR,
+    PIDNAVR,
     PIDLEVEL,
     PIDMAG,
     PIDVEL,
     PIDITEMS
 };
+
+typedef struct {
+    float kP;
+    float kI;
+    float kD;
+    float Imax;
+} PID_PARAM;
 
 //enum {
 //    BOXARM = 0,
@@ -193,6 +215,10 @@ typedef struct master_t {
 	uint8_t rc_channel_count;               // total number of incoming RC channels that should be processed, range (8...18), default is 8
 	
 	// gps-related stuff
+	uint8_t gps_type;                       // See GPSHardware enum.
+	int8_t gps_baudrate;                    // See GPSBaudRates enum.
+	
+	
 	
 	uint32_t serial_baudrate;               // primary serial (MSP) port baudrate
 	
@@ -264,6 +290,17 @@ extern flags_t f;
 extern int16_t heading, magHold;
 extern int16_t gyroADC[3], accADC[3], accSmooth[3], magADC[3];
 extern uint16_t cycleTime;
+extern int32_t EstAlt;
+
+// GPS stuff
+extern int32_t  GPS_coord[2];
+extern int32_t 	GPS_home[3];
+extern uint8_t  GPS_numSat;
+extern uint16_t GPS_distanceToHome;                          // distance to home or hold point in meters
+extern int16_t  GPS_directionToHome;                         // direction to home or hol point in degrees
+extern uint16_t GPS_altitude, GPS_speed;                     // altitude in 0.1m and speed in 0.1m/s
+extern uint8_t  GPS_update;                                  // it's a binary toogle to distinct a GPS position update
+extern uint16_t GPS_ground_course;                           // degrees*10
 
 // main
 void setPIDController(int type);
@@ -302,4 +339,9 @@ bool feature(uint32_t mask);
 void sensorsSet(uint32_t mask);
 bool sensors(uint32_t mask);
 
+// gps
+void gpsSetPIDs(void);
+void gpsThread(void);
+
+void GPS_reset_home_position(void);
 
