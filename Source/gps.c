@@ -9,6 +9,14 @@
 #define POSHOLD_RATE_IMAX      20       // degrees
 #define NAV_IMAX               20       // degrees
 
+enum {
+    GPS_UNKNOWN,
+    GPS_INITIALIZING,
+    GPS_SETBAUD,
+    GPS_CONFIGURATION,
+    GPS_RECEIVINGDATA,
+    GPS_LOSTCOMMS,
+};
 
 static PID_PARAM posholdPID_PARAM;
 static PID_PARAM poshold_ratePID_PARAM;
@@ -61,6 +69,36 @@ void gpsSetPIDs(void)
         altPID_PARAM.kI   = (float)cfg.I8[PIDALT] / 100.0f;
         altPID_PARAM.kD   = (float)cfg.D8[PIDALT] / 1000.0f;
     }
+}
+
+static void gpsSetState(uint8_t state)
+{
+    gpsData.state = state;
+    gpsData.state_position = 0;
+    gpsData.state_ts = millis();
+    gpsData.config_position = 0;
+}
+
+void gpsInit(uint8_t baudrateIndex)
+{
+	portMode_t mode = MODE_RXTX;
+	
+	 // init gpsData structure. if we're not actually enabled, don't bother doing anything else
+    gpsSetState(GPS_UNKNOWN);
+    if (!feature(FEATURE_GPS))
+        return;
+    if (feature(FEATURE_SERIALRX) && !feature(FEATURE_SOFTSERIAL) && !mcfg.spektrum_sat_on_flexport)
+        return;
+
+    gpsData.baudrateIndex = baudrateIndex;
+    gpsData.lastMessage = millis();
+    gpsData.errors = 0;
+    // only RX is needed for NMEA-style GPS
+    if (mcfg.gps_type == GPS_NMEA) {
+        mode = MODE_RX;
+	}
+	
+    gpsSetPIDs();
 }
 
 void gpsThread(void)

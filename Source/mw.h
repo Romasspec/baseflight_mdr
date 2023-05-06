@@ -340,8 +340,8 @@ void sensorsSet(uint32_t mask);
 bool sensors(uint32_t mask);
 
 // gps
-void gpsSetPIDs(void);
+void gpsInit(uint8_t baudrate);
 void gpsThread(void);
-
+void gpsSetPIDs(void);
 void GPS_reset_home_position(void);
 

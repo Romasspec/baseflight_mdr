@@ -121,6 +121,10 @@ int main(void)
 	rcReadRawFunc = pwmReadRawRC;
 	core.numRCChannels = MAX_PWM_INPUTS;
 
+#ifdef GPS
+	gpsInit(mcfg.gps_baudrate);
+#endif
+	
 	if (feature(FEATURE_PPM))
 	{
 		core.numRCChannels = MAX_PPM_INPUTS;
