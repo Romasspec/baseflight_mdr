@@ -1,6 +1,12 @@
 #include "board.h"
 #include "mw.h"
 
+static uint8_t numberRules = 0;
+int16_t motor[MAX_MOTORS];
+int16_t motor_disarmed[MAX_MOTORS];
+int16_t servo[MAX_SERVOS] = { 1500, 1500, 1500, 1500};
+static servoMixer_t currentServoMixer[MAX_SERVO_RULES];
+
 static const motorMixer_t mixerTri[] = {
     { 1.0f,  0.0f,  1.333333f,  0.0f },     // REAR
     { 1.0f, -1.0f, -0.666667f,  0.0f },     // RIGHT
@@ -38,6 +44,24 @@ const mixer_t mixers[] = {
 
 		{ 0, 0, NULL },                // MULTITYPE_CUSTOM
 };
+
+void loadCustomServoMixer(void)
+{
+    uint8_t i;
+
+    // reset settings
+    numberRules = 0;
+    memset(currentServoMixer, 0, sizeof(currentServoMixer));
+
+    // load custom mixer into currentServoMixer
+    for (i = 0; i < MAX_SERVO_RULES; i++) {
+        // check if done
+        if (mcfg.customServoMixer[i].rate == 0)
+            break;
+        currentServoMixer[i] = mcfg.customServoMixer[i];
+        numberRules++;
+    }
+}
 
 void mixerInit(void)
 {

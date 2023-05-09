@@ -30,7 +30,8 @@
 //#include "core_cm3.h"
 
 #define I2C_DEVICE (I2CDEV_1)
-#define SENSORS_SET (SENSOR_ACC | SENSOR_BARO | SENSOR_MAG)
+//#define SENSORS_SET (SENSOR_ACC | SENSOR_BARO | SENSOR_MAG)
+#define SENSORS_SET (0)
 
 #define togle_PB7	MDR_PORTB->RXTX ^= PORT_Pin_7
 #define togle_PD2	MDR_PORTD->RXTX ^= PORT_Pin_2
@@ -39,7 +40,7 @@
 
 #define toggle_BUZER	togle_PB7
 
-#define GPS
+//#define GPS
 
 typedef uint16_t (*rcReadRawDataPtr)(uint8_t chan);        // used by receiver driver to return channel data
 typedef void (*pidControllerFuncPtr)(void);                // pid controller function prototype

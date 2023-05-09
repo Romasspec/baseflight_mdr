@@ -15,6 +15,7 @@ int32_t EstAlt;                // in cm
 float throttleAngleScale;
 float accVelScale;
 float fc_acc;
+int32_t vario = 0;                      // variometer in cm/s
 float magneticDeclination = 0.0f;       // calculated at startup from config
 
 // **************

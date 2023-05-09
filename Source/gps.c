@@ -5,9 +5,25 @@
 #define sq(x) ((x)*(x))
 #endif
 
+// GPS timeout for wrong baud rate/disconnection/etc in milliseconds (default 2.5second)
+#define GPS_TIMEOUT (2500)
+// How many entries in gpsInitData array below
+#define GPS_INIT_ENTRIES (GPS_BAUD_MAX + 1)
+#define GPS_BAUD_DELAY (100)
+
 #define POSHOLD_IMAX           20       // degrees
 #define POSHOLD_RATE_IMAX      20       // degrees
 #define NAV_IMAX               20       // degrees
+
+enum {
+    SBAS_DISABLED = -1,
+    SBAS_AUTO,
+    SBAS_EGNOS,
+    SBAS_WAAS,
+    SBAS_MSAS,
+    SBAS_GAGAN,
+    SBAS_LAST
+};
 
 enum {
     GPS_UNKNOWN,
@@ -16,6 +32,41 @@ enum {
     GPS_CONFIGURATION,
     GPS_RECEIVINGDATA,
     GPS_LOSTCOMMS,
+};
+
+typedef struct gpsInitData_t {
+    uint8_t index;
+    uint32_t baudrate;
+    const char *ubx;
+    const char *mtk;
+} gpsInitData_t;
+
+// NMEA will cycle through these until valid data is received
+static const gpsInitData_t gpsInitData[] = {
+    { GPS_BAUD_115200, 115200, "$PUBX,41,1,0003,0001,115200,0*1E\r\n", "$PMTK251,115200*1F\r\n" },
+    { GPS_BAUD_57600,   57600, "$PUBX,41,1,0003,0001,57600,0*2D\r\n", "$PMTK251,57600*2C\r\n" },
+    { GPS_BAUD_38400,   38400, "$PUBX,41,1,0003,0001,38400,0*26\r\n", "$PMTK251,38400*27\r\n" },
+    { GPS_BAUD_19200,   19200, "$PUBX,41,1,0003,0001,19200,0*23\r\n", "$PMTK251,19200*22\r\n" },
+    // 9600 is not enough for 5Hz updates - leave for compatibility to dumb NMEA that only runs at this speed
+    { GPS_BAUD_9600,     9600, "$PUBX,41,1,0003,0001,9600,0*16\r\n", "" }
+};
+
+static uint8_t ubloxSbasInit[] = {
+    0xB5, 0x62, 0x06, 0x16, 0x08, 0x00, 0x03, 0x07, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x31, 0xE5
+    //                                                          ^ from here will be overwritten by below config
+    //                                  ^ from here it will be overwritten by disabled config
+};
+
+static const uint8_t ubloxSbasMode[] = {
+    0x00, 0x00, 0x00, 0x00, 0x31, 0xE5, // Auto
+    0x51, 0x08, 0x00, 0x00, 0x8A, 0x41, // EGNOS
+    0x04, 0xE0, 0x04, 0x00, 0x19, 0x9D, // WAAS
+    0x00, 0x02, 0x02, 0x00, 0x35, 0xEF, // MSAS
+    0x80, 0x01, 0x00, 0x00, 0xB2, 0xE8, // GAGAN
+};
+
+static const uint8_t ubloxSbasDisabled[] = {
+    0x02, 0x07, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x30, 0xDD
 };
 
 static PID_PARAM posholdPID_PARAM;
@@ -79,8 +130,12 @@ static void gpsSetState(uint8_t state)
     gpsData.config_position = 0;
 }
 
+// Max baud rate of current soft serial implementation
+#define SOFT_SERIAL_MAX_BAUD_RATE 38400
+
 void gpsInit(uint8_t baudrateIndex)
 {
+	uint8_t i;
 	portMode_t mode = MODE_RXTX;
 	
 	 // init gpsData structure. if we're not actually enabled, don't bother doing anything else
@@ -99,6 +154,30 @@ void gpsInit(uint8_t baudrateIndex)
 	}
 	
     gpsSetPIDs();
+	if (feature(FEATURE_SERIALRX) && feature(FEATURE_SOFTSERIAL) && !mcfg.spektrum_sat_on_flexport) {
+        if (gpsInitData[baudrateIndex].baudrate > SOFT_SERIAL_MAX_BAUD_RATE) {
+            mcfg.softserial_baudrate = SOFT_SERIAL_MAX_BAUD_RATE;
+            for (i = 0; i < GPS_INIT_ENTRIES; i++)
+                if (SOFT_SERIAL_MAX_BAUD_RATE == gpsInitData[i].baudrate)
+                    mcfg.gps_baudrate = gpsInitData[i].index;
+        } else
+            mcfg.softserial_baudrate = gpsInitData[baudrateIndex].baudrate;
+        // If SerialRX is in use then use soft serial ports for GPS (pin 5 & 6)
+//        core.gpsport = &(softSerialPorts[0].port);
+    } else
+        // Open GPS UART, no callback - buffer will be read out in gpsThread()
+      {  core.gpsport = uartOpen(MDR_UART1, NULL, gpsInitData[baudrateIndex].baudrate, mode);    // signal GPS "thread" to initialize when it gets to it
+		// signal GPS "thread" to initialize when it gets to it
+	  }
+    gpsSetState(GPS_INITIALIZING);
+
+    // copy ubx sbas config string to use
+    if (mcfg.gps_ubx_sbas >= SBAS_LAST)
+        mcfg.gps_ubx_sbas = SBAS_AUTO;
+    if (mcfg.gps_ubx_sbas != SBAS_DISABLED)
+        memcpy(ubloxSbasInit + 10, ubloxSbasMode + (mcfg.gps_ubx_sbas * 6), 6);
+    else
+        memcpy(ubloxSbasInit + 6, ubloxSbasDisabled, sizeof(ubloxSbasDisabled));
 }
 
 void gpsThread(void)

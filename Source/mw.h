@@ -52,6 +52,14 @@ enum {
     PIDITEMS
 };
 
+typedef struct servoParam_t {
+    int16_t min;                            // servo min
+    int16_t max;                            // servo max
+    int16_t middle;                         // servo middle
+    int8_t rate;                            // range [-100;+100] ; can be used to ajust a rate 0-100% and a direction
+    uint16_t direction;                     // the direction of servo movement for each input channel of the servo mixer, bit set=inverted
+} servoParam_t;
+
 typedef struct {
     float kP;
     float kI;
@@ -99,6 +107,25 @@ enum {
     CHECKBOXITEMS
 };
 
+typedef struct servoMixer_t {
+    uint8_t targetChannel;                  // servo that receives the output of the rule
+    uint8_t fromChannel;                    // input channel for this rule
+    int8_t rate;                            // range [-100;+100] ; can be used to ajust a rate 0-100% and a direction
+    uint8_t speed;                          // reduces the speed of the rule, 0=unlimited speed
+    int8_t min;                             // lower bound of rule range [0;100]% of servo max-min
+    int8_t max;                             // lower bound of rule range [0;100]% of servo max-min
+    uint8_t box;                            // active rule if box is enabled, range [0;3], 0=no box, 1=BOXSERVO1, 2=BOXSERVO2, 3=BOXSERVO3
+} servoMixer_t;
+
+// Custom mixer configuration
+typedef struct mixerRules_t {
+    uint8_t numberRules;
+    const servoMixer_t *rule;
+} mixerRules_t;
+
+#define MAX_SERVO_RULES (2 * MAX_SERVOS)
+//#define MAX_SERVOS      8
+
 #define CALIBRATING_GYRO_CYCLES             1000
 #define CALIBRATING_ACC_CYCLES              400
 
@@ -138,12 +165,17 @@ typedef struct config_t {
 	
 	uint8_t rcRate8;
     uint8_t rcExpo8;
+	uint8_t thrMid8;
+    uint8_t thrExpo8;
 	
 	uint8_t rollPitchRate[2];
     uint8_t yawRate;
 	
+	uint8_t dynThrPID;
+	
 	int16_t mag_declination;                // Get your magnetic decliniation from here : http://magnetic-declination.com/
     int16_t angleTrim[2];                   // accelerometer trim
+	uint8_t locked_in;
 	
 	// sensor-related stuff
 	uint8_t acc_lpf_factor;                 // Set the Low Pass Filter factor for ACC. Increasing this value would reduce ACC noise (visible in GUI), but would increase ACC lag time. Zero = no filter
@@ -159,7 +191,27 @@ typedef struct config_t {
     uint8_t deadband;                       // introduce a deadband around the stick center for pitch and roll axis. Must be greater than zero.
     uint8_t yawdeadband;                    // introduce a deadband around the stick center for yaw axis. Must be greater than zero.
 	uint16_t throttle_correction_angle;     // the angle when the throttle correction is maximal. in 0.1 degres, ex 225 = 22.5 ,30.0, 450 = 45.0 deg
-		
+	
+	// Servo-related stuff
+    servoParam_t servoConf[MAX_SERVOS];     // servo configuration
+	
+	// Failsafe related configuration
+	uint16_t failsafe_throttle;             // Throttle level used for landing - specify value between 1000..2000 (pwm pulse width for slightly below hover). center throttle = 1500.
+
+	// fw-related stuff
+	int16_t fw_gps_maxcorr;                    // Degrees banking Allowed by GPS.
+    int16_t fw_gps_rudder;                     // Maximum input of Rudder Allowed by GPS.
+    int16_t fw_gps_maxclimb;                   // Degrees climbing . To much can stall the plane.
+    int16_t fw_gps_maxdive;                    // Degrees Diving . To much can overspeed the plane.
+//    uint8_t fw_glide_angle;                    // Glide angle in power off	
+	uint16_t fw_climb_throttle;                // Max allowed throttle in GPS modes.
+    uint16_t fw_cruise_throttle;               // Throttle to set for cruisespeed.
+    uint16_t fw_idle_throttle;                 // Lowest throttleValue during Descend
+    uint16_t fw_scaler_throttle;               // Adjust to Match Power/Weight ratio of your model
+	uint8_t fw_roll_comp;                      // Adds Elevator Based on Roll Angle
+//    int16_t fw_cruise_distance;                // Distance to viritual WP.
+    uint8_t fw_rth_alt;                        // Min Altitude to keep during RTH. (Max 200m)
+	
 } config_t;
 
 typedef struct master_t {
@@ -170,6 +222,7 @@ typedef struct master_t {
 	uint8_t mixerConfiguration;
 	uint32_t enabledFeatures;
 	uint16_t looptime;                      // imu loop time in us
+	servoMixer_t customServoMixer[MAX_SERVO_RULES]; // custom servo mixtable
 	
 	// motor/esc/servo related stuff
 	uint16_t minthrottle;                   // Set the minimum throttle command sent to the ESC (Electronic Speed Controller). This is the minimum value that allow motors to run at a idle speed.
@@ -199,6 +252,10 @@ typedef struct master_t {
 	uint8_t auto_disarm_board;              // Disarm board when motors not spinning at armed enabled (0 = disabled, 1 - 60 seconds when to automatically disarm)
 	
 	// Battery/ADC stuff
+    uint16_t currentscale;                  // scale the current sensor output voltage to milliamps. Value in 1/10th mV/A
+    uint16_t currentoffset;                 // offset of the current sensor in millivolt steps
+    uint8_t multiwiicurrentoutput;          // if set to 1 output the amperage in milliamp steps instead of 0.01A steps via msp
+
 	uint8_t vbatscale;                      // adjust this to match battery voltage to reported value
 	uint8_t vbatmaxcellvoltage;             // maximum voltage per cell, used for auto-detecting battery voltage in 0.1V units, default is 43 (4.3V)
 	uint8_t vbatmincellvoltage;             // minimum voltage per cell, this triggers FASTER battery out alarm, in 0.1V units, default is 33 (3.3V)
@@ -208,19 +265,24 @@ typedef struct master_t {
 	
 	// Radio/ESC-related configuration
 	uint16_t midrc;                         // Some radios have not a neutral point centered on 1500. can be changed here
+	uint8_t serialrx_type;                  // type of UART-based receiver (0 = spek 10, 1 = spek 11, 2 = sbus). Must be enabled by FEATURE_SERIALRX first.
 	uint8_t rcmap[RC_CHANS];                // mapping of radio channels to internal RPYTA+ order
 	uint16_t mincheck;                      // minimum rc end
 	uint16_t maxcheck;                      // maximum rc end
 	uint8_t rssi_adc_channel;               // Read analog-rssi from RC-filter (RSSI-PWM to RSSI-Analog), RC_CH2 (unused when in CPPM mode, = 1), RC_CH8 (last channel in PWM mode, = 9), ADC_EXTERNAL_PAD (Rev5 only, = 5), 0 to disable (disabled if rssi_aux_channel > 0 or rssi_adc_channel == power_adc_channel)
 	uint8_t rc_channel_count;               // total number of incoming RC channels that should be processed, range (8...18), default is 8
-	
+	uint8_t spektrum_sat_on_flexport;       // Spektrum satellite on USART3 (flexport, available with rev5sp hardware)
+	uint8_t rssi_aux_channel;               // Read rssi from channel. 1+ = AUX1+, 0 to disable.
+	int8_t fw_althold_dir;                  // +1 or -1 for pitch/althold gain. later check if need more than just sign
+
 	// gps-related stuff
 	uint8_t gps_type;                       // See GPSHardware enum.
 	int8_t gps_baudrate;                    // See GPSBaudRates enum.
-	
-	
-	
+	int8_t gps_ubx_sbas;                    // UBX SBAS setting.  -1 = disabled, 0 = AUTO, 1 = EGNOS, 2 = WAAS, 3 = MSAS, 4 = GAGAN (default = 0 = AUTO)
+    uint8_t gps_autobaud;                   // GPS autobaud setting. When enabled GPS baud rate will be lowered if there are timeout. 0 = disabled, 1 = enabled
+		
 	uint32_t serial_baudrate;               // primary serial (MSP) port baudrate
+	uint32_t softserial_baudrate;           // shared by both soft serial ports
 	
 	config_t profile[3];										// 3 separate profiles
 	uint8_t current_profile;                // currently loaded profile
@@ -274,6 +336,7 @@ extern int16_t gyroData[3];
 extern int16_t angle[2];
 extern uint8_t rcOptions[CHECKBOXITEMS];
 
+extern int16_t debug[4];
 extern uint16_t acc_1G;
 extern uint32_t currentTime;
 
@@ -291,6 +354,15 @@ extern int16_t heading, magHold;
 extern int16_t gyroADC[3], accADC[3], accSmooth[3], magADC[3];
 extern uint16_t cycleTime;
 extern int32_t EstAlt;
+extern int32_t vario;
+extern int16_t motor[MAX_MOTORS];
+extern int16_t servo[MAX_SERVOS];
+
+extern uint16_t rssi;                  // range: [0;1023]
+extern uint16_t vbat;                  // battery voltage in 0.1V steps
+//extern int16_t telemTemperature1;      // gyro sensor temperature
+extern int32_t amperage;               // amperage read by current sensor in 0.01A steps
+extern int32_t mAhdrawn;              // milli ampere hours drawn from battery since start
 
 // GPS stuff
 extern int32_t  GPS_coord[2];
@@ -309,6 +381,11 @@ void loop(void);
 // rx
 void computeRC(void);
 
+// rxmsp
+
+
+void mspFrameRecieve(void);
+
 // IMU
 void imuInit(void);
 void computeIMU(void);
@@ -324,6 +401,7 @@ void ACC_getADC(void);
 void mixerInit(void);
 void writeMotors(void);
 void writeAllMotors(int16_t mc);
+void loadCustomServoMixer(void);
 
 // Serial
 void serialInit(uint32_t baudrate);
@@ -338,6 +416,10 @@ void activateConfig(void);
 bool feature(uint32_t mask);
 void sensorsSet(uint32_t mask);
 bool sensors(uint32_t mask);
+void featureSet(uint32_t mask);
+void featureClear(uint32_t mask);
+void featureClearAll(void);
+uint32_t featureMask(void);
 
 // gps
 void gpsInit(uint8_t baudrate);

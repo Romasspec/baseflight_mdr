@@ -21,14 +21,15 @@ int main(void)
 	
 	delay(2000);
 	
-	if (checkFirstTime(false))
-	{
-		UART_SendData (MDR_UART2, 0xFF);
-	}
+	checkFirstTime(false);
+//	if (checkFirstTime(false))
+//	{
+//		UART_SendData (MDR_UART2, 0xFF);
+//	}
 	
 	readEEPROM();
 	
-	uartTransmit ((uint8_t*) &mcfg, 1);
+//	uartTransmit ((uint8_t*) &mcfg, 1);
 	
 	// sleep for 100ms
 	delay(100);

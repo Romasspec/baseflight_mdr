@@ -52,7 +52,7 @@ bool sensorsAutodetect(void)
 	// Now time to init things, acc first
 	if (sensors(SENSOR_ACC))
 	{
-//		acc.init(mcfg.acc_align);
+		acc.init(mcfg.acc_align);
 	}
 	
 	// this is safe because either mpu6050 or mpu3050 or lg3d20 sets it, and in case of fail, we never get here.

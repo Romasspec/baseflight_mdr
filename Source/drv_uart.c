@@ -7,7 +7,7 @@ static uartPort_t uartPort2;
 uartPort_t *serialUART1(uint32_t baudRate, portMode_t mode)
 {
 	uartPort_t *s;
-	
+	PORT_InitTypeDef Port_Initstructure;
 	static volatile uint8_t rx1Buffer[UART1_RX_BUFFER_SIZE];
 	static volatile uint8_t tx1Buffer[UART1_TX_BUFFER_SIZE];
 	
@@ -20,6 +20,25 @@ uartPort_t *serialUART1(uint32_t baudRate, portMode_t mode)
 	s->port.rxBufferSize = UART1_RX_BUFFER_SIZE;
 	s->port.txBufferSize = UART1_TX_BUFFER_SIZE;
 	
+	RST_CLK_PCLKcmd	( RST_CLK_PCLK_UART1, 	ENABLE);
+	UART_BRGInit (MDR_UART1, UART_HCLKdiv1);
+	// USART1_RX    PA6
+    // USART1_TX    PA7
+	Port_Initstructure.PORT_Pin 	= PORT_Pin_6;
+	Port_Initstructure.PORT_OE 		= PORT_OE_IN;
+	Port_Initstructure.PORT_MODE 	= PORT_MODE_DIGITAL;
+	Port_Initstructure.PORT_FUNC 	= PORT_FUNC_OVERRID;
+	Port_Initstructure.PORT_SPEED	= PORT_SPEED_MAXFAST;
+	if (MODE_RX & mode) {
+		PORT_Init (MDR_PORTA, &Port_Initstructure);
+	}
+	
+	Port_Initstructure.PORT_Pin 	= PORT_Pin_7;
+	Port_Initstructure.PORT_OE 		= PORT_OE_OUT;
+	if (MODE_TX & mode) {
+		PORT_Init (MDR_PORTA, &Port_Initstructure);
+	}
+	
 	return s;
 }
 
@@ -27,6 +46,7 @@ uartPort_t *serialUART1(uint32_t baudRate, portMode_t mode)
 uartPort_t *serialUART2(uint32_t baudRate, portMode_t mode)
 {	
 	uartPort_t *s;
+	PORT_InitTypeDef Port_Initstructure;
 	static volatile uint8_t rx2Buffer[UART2_RX_BUFFER_SIZE];
 	static volatile uint8_t tx2Buffer[UART2_TX_BUFFER_SIZE];
 	
@@ -38,6 +58,25 @@ uartPort_t *serialUART2(uint32_t baudRate, portMode_t mode)
 	s->port.txBuffer = tx2Buffer;
 	s->port.rxBufferSize = UART2_RX_BUFFER_SIZE;
 	s->port.txBufferSize = UART2_TX_BUFFER_SIZE;
+	
+	RST_CLK_PCLKcmd	( RST_CLK_PCLK_UART2, 	ENABLE);
+	UART_BRGInit (MDR_UART2, UART_HCLKdiv1);
+	// USART2_RX    PD0
+    // USART2_TX    PD1
+	Port_Initstructure.PORT_Pin 	= PORT_Pin_0;
+	Port_Initstructure.PORT_OE 		= PORT_OE_IN;
+	Port_Initstructure.PORT_MODE 	= PORT_MODE_DIGITAL;
+	Port_Initstructure.PORT_FUNC 	= PORT_FUNC_ALTER;
+	Port_Initstructure.PORT_SPEED	= PORT_SPEED_MAXFAST;
+	if (MODE_RX & mode) {
+		PORT_Init (MDR_PORTD, &Port_Initstructure);
+	}
+	
+	Port_Initstructure.PORT_Pin 	= PORT_Pin_1;
+	Port_Initstructure.PORT_OE 		= PORT_OE_OUT;
+	if (MODE_TX & mode) {
+		PORT_Init (MDR_PORTD, &Port_Initstructure);
+	}
 	
 	return s;
 }
@@ -71,7 +110,12 @@ serialPort_t *uartOpen(MDR_UART_TypeDef *UARTx, serialReceiveCallbackPtr callbac
 	UART_InitStructure.UART_WordLength = UART_WordLength8b;
 	UART_InitStructure.UART_StopBits = UART_StopBits1;
 	UART_InitStructure.UART_Parity = UART_Parity_No;
-	UART_InitStructure.UART_HardwareFlowControl = UART_HardwareFlowControl_RXE | UART_HardwareFlowControl_TXE;
+	if (mode & MODE_RX) {
+		UART_InitStructure.UART_HardwareFlowControl = UART_HardwareFlowControl_RXE;
+	}
+	if (mode & MODE_TX) {
+		UART_InitStructure.UART_HardwareFlowControl |= UART_HardwareFlowControl_TXE;
+	}
 	UART_InitStructure.UART_FIFOMode = UART_FIFO_OFF;
 	
 	UART_Init(UARTx, &UART_InitStructure);

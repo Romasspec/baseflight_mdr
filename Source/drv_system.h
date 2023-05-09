@@ -11,3 +11,6 @@ void failureMode(uint8_t mode);
 
 // bootloader/IAP
 void systemReset(bool toBootloader);
+
+// current crystal frequency - 8 or 12MHz
+extern uint32_t hse_value;

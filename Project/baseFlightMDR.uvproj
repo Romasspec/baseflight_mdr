@@ -592,6 +592,11 @@
               <FileType>1</FileType>
               <FilePath>..\Source\gps.c</FilePath>
             </File>
+            <File>
+              <FileName>rxmsp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Source\rxmsp.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

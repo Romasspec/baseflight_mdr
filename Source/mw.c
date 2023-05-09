@@ -2,6 +2,7 @@
 #include "mw.h"
 
 flags_t f;
+int16_t debug[4];
 uint32_t currentTime = 0;
 uint32_t previousTime = 0;
 static int32_t errorGyroI[3] = { 0, 0, 0 };
@@ -9,12 +10,16 @@ static int32_t errorAngleI[2] = { 0, 0 };
 int16_t headFreeModeHold;
 uint16_t cycleTime = 0;         // this is the number in micro second to achieve a full loop, it can differ a little and is taken into account in the PID loop
 
+uint16_t vbat;                  // battery voltage in 0.1V steps
+int32_t amperage;               // amperage read by current sensor in centiampere (1/100th A)
+int32_t mAhdrawn;              // milliampere hours drawn from the battery since start
+//int16_t telemTemperature1;      // gyro sensor temperature
 
 int16_t rcData[RC_CHANS];       // interval [1000;2000]
 int16_t rcCommand[4];           // interval [1000;2000] for THROTTLE and [-500;+500] for ROLL/PITCH/YAW
 int16_t lookupPitchRollRC[PITCH_LOOKUP_LENGTH];     // lookup table for expo & RC rate PITCH+ROLL
 int16_t lookupThrottleRC[THROTTLE_LOOKUP_LENGTH];   // lookup table for expo & mid THROTTLE
-
+uint16_t rssi;                  // range: [0;1023]
 rcReadRawDataPtr rcReadRawFunc = NULL;  // receive data from default (pwm/ppm) or additional (spek/sbus/?? receiver drivers)
 
 static void pidMultiWii(void);
@@ -34,6 +39,8 @@ static uint32_t disarmTime = 0;
 uint8_t dynP8[3], dynI8[3], dynD8[3];
 uint8_t rcOptions[CHECKBOXITEMS];
 
+int16_t axisPID[3];
+
 // **********************
 // GPS
 // **********************
@@ -44,7 +51,9 @@ uint16_t GPS_distanceToHome;        // distance to home point in meters
 int16_t GPS_directionToHome;        // direction to home or hol point in degrees
 uint16_t GPS_altitude, GPS_speed;   // altitude in 0.1m and speed in 0.1m/s
 uint8_t GPS_update = 0;             // it's a binary toogle to distinct a GPS position update
+int16_t GPS_angle[3] = { 0, 0, 0 }; // it's the angles that must be applied for GPS correction
 uint16_t GPS_ground_course = 0;     // degrees * 10
+
 
 
 void annexCode(void)
@@ -325,7 +334,7 @@ void loop(void)
 			taskOrder++;
 
 #ifdef MAG
-			if (sensors(SENSOR_MAG)/* && Mag_getADC()*/)
+			if (sensors(SENSOR_MAG) /*&& Mag_getADC()*/)
 		break;
 #endif
 								
@@ -381,7 +390,8 @@ void loop(void)
 		
 		annexCode();
 		
-		
+		// PID - note this is function pointer set by setPIDController()
+        pid_controller();
 		
 	}
 	
@@ -460,7 +470,59 @@ void setPIDController(int type)
 
 static void pidMultiWii(void)
 {
-	
+	int axis, prop;
+    int32_t error, errorAngle;
+    int32_t PTerm, ITerm, PTermACC = 0, ITermACC = 0, PTermGYRO = 0, ITermGYRO = 0, DTerm;
+    static int16_t lastGyro[3] = { 0, 0, 0 };
+    static int32_t delta1[3], delta2[3];
+    int32_t deltaSum;
+    int32_t delta;
+
+    // **** PITCH & ROLL & YAW PID ****
+    prop = max(abs(rcCommand[PITCH]), abs(rcCommand[ROLL])); // range [0;500]
+    for (axis = 0; axis < 3; axis++) {
+        if ((f.ANGLE_MODE || f.HORIZON_MODE) && axis < 2) { // MODE relying on ACC
+            // 50 degrees max inclination
+            errorAngle = constrain(2 * rcCommand[axis] + GPS_angle[axis], -((int)mcfg.max_angle_inclination), +mcfg.max_angle_inclination) - angle[axis] + cfg.angleTrim[axis];
+            PTermACC = errorAngle * cfg.P8[PIDLEVEL] / 100; // 32 bits is needed for calculation: errorAngle*P8[PIDLEVEL] could exceed 32768   16 bits is ok for result
+            PTermACC = constrain(PTermACC, -cfg.D8[PIDLEVEL] * 5, +cfg.D8[PIDLEVEL] * 5);
+
+            errorAngleI[axis] = constrain(errorAngleI[axis] + errorAngle, -10000, +10000); // WindUp
+            ITermACC = (errorAngleI[axis] * cfg.I8[PIDLEVEL]) >> 12;
+        }
+        if (!f.ANGLE_MODE || f.HORIZON_MODE || axis == 2) { // MODE relying on GYRO or YAW axis
+            error = (int32_t)rcCommand[axis] * 10 * 8 / cfg.P8[axis];
+            error -= gyroData[axis];
+
+            PTermGYRO = rcCommand[axis];
+
+            errorGyroI[axis] = constrain(errorGyroI[axis] + error, -16000, +16000); // WindUp
+            if ((abs(gyroData[axis]) > 640) || ((axis == YAW) && (abs(rcCommand[axis]) > 100)))
+                errorGyroI[axis] = 0;
+            ITermGYRO = (errorGyroI[axis] / 125 * cfg.I8[axis]) >> 6;
+        }
+        if (f.HORIZON_MODE && axis < 2) {
+            PTerm = (PTermACC * (500 - prop) + PTermGYRO * prop) / 500;
+            ITerm = (ITermACC * (500 - prop) + ITermGYRO * prop) / 500;
+        } else {
+            if (f.ANGLE_MODE && axis < 2) {
+                PTerm = PTermACC;
+                ITerm = ITermACC;
+            } else {
+                PTerm = PTermGYRO;
+                ITerm = ITermGYRO;
+            }
+        }
+
+        PTerm -= (int32_t)gyroData[axis] * dynP8[axis] / 10 / 8; // 32 bits is needed for calculation
+        delta = gyroData[axis] - lastGyro[axis];
+        lastGyro[axis] = gyroData[axis];
+        deltaSum = delta1[axis] + delta2[axis] + delta;
+        delta2[axis] = delta1[axis];
+        delta1[axis] = delta;
+        DTerm = (deltaSum * dynD8[axis]) / 32;
+        axisPID[axis] = PTerm + ITerm - DTerm;
+    }
 }
 
 static void pidRewrite(void)

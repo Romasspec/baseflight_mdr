@@ -80,6 +80,9 @@ uint8_t checkFirstTime(bool reset)
 // Default settings
 static void resetConf(void)
 {
+	int i;
+	int8_t servoRates[8] = { 30, 30, 100, 100, 100, 100, 100, 100 };
+
 	 // Clear all configuration
 	memset (&mcfg, 0, sizeof(master_t));
 	memset (&cfg, 0, sizeof(config_t));
@@ -91,6 +94,7 @@ static void resetConf(void)
 	mcfg.gyro_cmpf_factor = 600;    // default MWC
     mcfg.gyro_cmpfm_factor = 250;   // default MWC
 	mcfg.gyro_lpf = 42;             // supported by all gyro drivers now. In case of ST gyro, will default to 32Hz instead
+	mcfg.serialrx_type = 0;
 	
 	mcfg.gyro_align = ALIGN_DEFAULT;
 	mcfg.acc_align = ALIGN_DEFAULT;
@@ -102,6 +106,7 @@ static void resetConf(void)
     mcfg.accZero[1] = 0;
     mcfg.accZero[2] = 0;
 	mcfg.yaw_control_direction = 1;
+	mcfg.fw_althold_dir = 1;
 	// Motor/ESC/Servo
 	mcfg.minthrottle = 1150;
 	mcfg.maxthrottle = 1850;
@@ -113,6 +118,7 @@ static void resetConf(void)
     mcfg.gps_type = GPS_NMEA;
     mcfg.gps_baudrate = GPS_BAUD_9600;//GPS_BAUD_115200;
 	
+	mcfg.currentscale = 400; // for Allegro ACS758LCB-100U (40mV/A)
 	mcfg.vbatscale = 110;
 	mcfg.vbatmaxcellvoltage = 43;
 	mcfg.vbatmincellvoltage = 33;
@@ -124,7 +130,7 @@ static void resetConf(void)
 	mcfg.acc_hardware = ACC_MPU6050;     // default/autodetect
 	mcfg.rc_channel_count = 8;
 	mcfg.looptime = 3500;
-	
+	mcfg.rssi_aux_channel = 0;
 	
 	// serial (USART2) baudrate
 	mcfg.serial_baudrate = 115200;
@@ -149,6 +155,7 @@ static void resetConf(void)
 	cfg.mag_declination = 0;    // For example, -6deg 37min, = -637 Japan, format is [sign]dddmm (degreesminutes) default is zero.
 	cfg.angleTrim[0] = 0;
 	cfg.angleTrim[1] = 0;
+	cfg.locked_in = 0;
 	cfg.deadband = 0;
 	cfg.yawdeadband = 0;
 	cfg.small_angle = 25;
@@ -159,6 +166,29 @@ static void resetConf(void)
 	cfg.acc_unarmedcal = 1;
 	
 	cfg.throttle_correction_angle = 800;    // could be 80.0 deg with atlhold or 45.0 for fpv
+	
+	cfg.failsafe_throttle = 1200;           // decent default which should always be below hover throttle for people.
+	
+	// servos
+    for (i = 0; i < 8; i++) {
+        cfg.servoConf[i].min = 1020;
+        cfg.servoConf[i].max = 2000;
+        cfg.servoConf[i].middle = 1500;
+        cfg.servoConf[i].rate = servoRates[i];
+    }
+
+	// fw stuff
+    cfg.fw_gps_maxcorr = 20;
+    cfg.fw_gps_rudder = 15;
+    cfg.fw_gps_maxclimb = 15;
+    cfg.fw_gps_maxdive = 15;
+	cfg.fw_climb_throttle = 1900;
+    cfg.fw_cruise_throttle = 1500;
+    cfg.fw_idle_throttle = 1300;
+    cfg.fw_scaler_throttle = 8;
+    cfg.fw_roll_comp = 100;
+//    cfg.fw_cruise_distance = 500;
+    cfg.fw_rth_alt = 50;
 	
 	for(uint8_t i=0; i<3; i++)
 	{
@@ -235,13 +265,32 @@ void activateConfig(void)
 #endif
 }
 
-bool feature(uint32_t mask)
-{
-    return mcfg.enabledFeatures & mask;
-}
-
 void sensorsSet(uint32_t mask)
 {
     enabledSensors |= mask;
 }
 
+bool feature(uint32_t mask)
+{
+    return mcfg.enabledFeatures & mask;
+}
+
+void featureSet(uint32_t mask)
+{
+    mcfg.enabledFeatures |= mask;
+}
+
+void featureClear(uint32_t mask)
+{
+    mcfg.enabledFeatures &= ~(mask);
+}
+
+void featureClearAll()
+{
+    mcfg.enabledFeatures = 0;
+}
+
+uint32_t featureMask(void)
+{
+    return mcfg.enabledFeatures;
+}

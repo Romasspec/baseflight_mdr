@@ -2,6 +2,8 @@
 #include "can.h"
 #include "uart.h"
 
+uint32_t hse_value = 8000000;
+
 // cycles per microsecond
 static volatile uint32_t usTicks = 0;
 // current uptime for 1kHz systick timer. will rollover after 49 days. hopefully we won't care.
@@ -87,10 +89,9 @@ void hardwareInit(void)
 	RST_CLK_PCLKcmd ( RST_CLK_PCLK_EEPROM,	ENABLE);
 	RST_CLK_PCLKcmd ( RST_CLK_PCLK_TIMER1,	ENABLE);
 	RST_CLK_PCLKcmd ( RST_CLK_PCLK_TIMER2,	ENABLE);
-	RST_CLK_PCLKcmd ( RST_CLK_PCLK_TIMER3,	ENABLE);
-	RST_CLK_PCLKcmd	( RST_CLK_PCLK_UART2, 	ENABLE);
+	RST_CLK_PCLKcmd ( RST_CLK_PCLK_TIMER3,	ENABLE);	
 	RST_CLK_PCLKcmd	( RST_CLK_PCLK_ADC,	  	ENABLE);
-	RST_CLK_PCLKcmd (RST_CLK_PCLK_WWDG, 		ENABLE);
+	RST_CLK_PCLKcmd (RST_CLK_PCLK_WWDG, 	ENABLE);
 	
 	PORT_InitTypeDef Port_Initstructure;
 	
@@ -130,19 +131,19 @@ void hardwareInit(void)
 //	PORT_Init (MDR_PORTD, &Port_Initstructure);
 //	
 
-	Port_Initstructure.PORT_Pin		= PORT_Pin_0;
-	Port_Initstructure.PORT_OE		= PORT_OE_IN;
-	Port_Initstructure.PORT_FUNC	= PORT_FUNC_ALTER;
-	Port_Initstructure.PORT_MODE	= PORT_MODE_DIGITAL;
-	Port_Initstructure.PORT_SPEED	= PORT_SPEED_MAXFAST;
-	PORT_Init (MDR_PORTD, &Port_Initstructure);
-	
-	Port_Initstructure.PORT_Pin		= PORT_Pin_1;
-	Port_Initstructure.PORT_OE		= PORT_OE_OUT;
-	Port_Initstructure.PORT_FUNC	= PORT_FUNC_ALTER;
-	Port_Initstructure.PORT_MODE	= PORT_MODE_DIGITAL;
-	Port_Initstructure.PORT_SPEED	= PORT_SPEED_MAXFAST;
-	PORT_Init (MDR_PORTD, &Port_Initstructure);
+//	Port_Initstructure.PORT_Pin		= PORT_Pin_0;
+//	Port_Initstructure.PORT_OE		= PORT_OE_IN;
+//	Port_Initstructure.PORT_FUNC	= PORT_FUNC_ALTER;
+//	Port_Initstructure.PORT_MODE	= PORT_MODE_DIGITAL;
+//	Port_Initstructure.PORT_SPEED	= PORT_SPEED_MAXFAST;
+//	PORT_Init (MDR_PORTD, &Port_Initstructure);
+//	
+//	Port_Initstructure.PORT_Pin		= PORT_Pin_1;
+//	Port_Initstructure.PORT_OE		= PORT_OE_OUT;
+//	Port_Initstructure.PORT_FUNC	= PORT_FUNC_ALTER;
+//	Port_Initstructure.PORT_MODE	= PORT_MODE_DIGITAL;
+//	Port_Initstructure.PORT_SPEED	= PORT_SPEED_MAXFAST;
+//	PORT_Init (MDR_PORTD, &Port_Initstructure);
 //	
 //	// Configure PORTE pins  for input
 //	PORT_StructInit (&Port_Initstructure);
@@ -168,20 +169,20 @@ void hardwareInit(void)
 	Port_Initstructure.PORT_SPEED	= PORT_SPEED_MAXFAST;
 	PORT_Init (MDR_PORTF, &Port_Initstructure);
 	
-	// Configure PORTE pins  for input (CAN2RX)
-	PORT_StructInit (&Port_Initstructure);
-	Port_Initstructure.PORT_Pin		= PORT_Pin_6;
+//	// Configure PORTE pins  for input (CAN2RX)
+//	PORT_StructInit (&Port_Initstructure);
+//	Port_Initstructure.PORT_Pin		= PORT_Pin_6;
 //	Port_Initstructure.PORT_OE		= PORT_OE_IN;
-	Port_Initstructure.PORT_FUNC	= PORT_FUNC_ALTER;
-	Port_Initstructure.PORT_MODE	= PORT_MODE_DIGITAL;
-	PORT_Init (MDR_PORTE, &Port_Initstructure);
-	
-	// Configure PORTE pins  for output (CAN2TX)
+//	Port_Initstructure.PORT_FUNC	= PORT_FUNC_ALTER;
+//	Port_Initstructure.PORT_MODE	= PORT_MODE_DIGITAL;
+//	PORT_Init (MDR_PORTE, &Port_Initstructure);
+//	
+//	// Configure PORTE pins  for output (CAN2TX)
 //	Port_Initstructure.PORT_PD		= PORT_PD_DRIVER;
-	Port_Initstructure.PORT_SPEED	= PORT_SPEED_MAXFAST;
+//	Port_Initstructure.PORT_SPEED	= PORT_SPEED_MAXFAST;
 //	Port_Initstructure.PORT_OE		= PORT_OE_OUT;
-	Port_Initstructure.PORT_Pin		= PORT_Pin_7;
-	PORT_Init (MDR_PORTE, &Port_Initstructure);
+//	Port_Initstructure.PORT_Pin		= PORT_Pin_7;
+//	PORT_Init (MDR_PORTE, &Port_Initstructure);
 	
 	// Init cycle counter
 	cycleCounterInit();
@@ -189,8 +190,8 @@ void hardwareInit(void)
 	// SysTick
 	SysTick_Config (SystemCoreClock/1000);
 	
-	canInit();
-	uartInit();	
+//	canInit();
+//	uartInit();	
 }
 
 
