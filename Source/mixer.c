@@ -71,6 +71,11 @@ void mixerInit(void)
 									
 }
 
+void writeServos(void)
+{
+	
+}
+
 void writeMotors(void)
 {
 //    uint8_t i;
@@ -87,4 +92,9 @@ void writeAllMotors(int16_t mc)
 //    for (i = 0; i < numberMotor; i++)
 //        motor[i] = mc;
     writeMotors();
+}
+
+void mixTable(void)
+{
+	
 }

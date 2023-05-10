@@ -6,7 +6,7 @@
 #define MAX_PPM_INPUTS 			6
 #define MAX_MOTORS  4
 #define MAX_SERVOS  4
-#define MAX_PWM_INPUTS  8
+#define MAX_PWM_INPUTS  6
 
 typedef struct drv_pwm_config_t {
     bool enableInput;

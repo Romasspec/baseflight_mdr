@@ -190,6 +190,9 @@ static void resetConf(void)
 //    cfg.fw_cruise_distance = 500;
     cfg.fw_rth_alt = 50;
 	
+	// control stuff
+    mcfg.reboot_character = 'R';
+	
 	for(uint8_t i=0; i<3; i++)
 	{
 		memcpy(&mcfg.profile[i], &cfg, sizeof(config_t));

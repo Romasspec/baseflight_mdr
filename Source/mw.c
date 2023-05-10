@@ -393,6 +393,10 @@ void loop(void)
 		// PID - note this is function pointer set by setPIDController()
         pid_controller();
 		
+		mixTable();
+        writeServos();
+        writeMotors();
+		
 	}
 	
 }

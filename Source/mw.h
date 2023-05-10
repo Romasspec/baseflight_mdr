@@ -286,6 +286,8 @@ typedef struct master_t {
 	
 	config_t profile[3];										// 3 separate profiles
 	uint8_t current_profile;                // currently loaded profile
+	uint8_t reboot_character;               // which byte is used to reboot. Default 'R', could be changed carefully to something else.
+
 	
 	uint8_t magic_ef;                       // magic number, should be 0xEF
 	uint8_t chk;                            // XOR checksum
@@ -399,9 +401,11 @@ void ACC_getADC(void);
 
 // Output
 void mixerInit(void);
+void writeServos(void);
 void writeMotors(void);
 void writeAllMotors(int16_t mc);
 void loadCustomServoMixer(void);
+void mixTable(void);
 
 // Serial
 void serialInit(uint32_t baudrate);

@@ -24,6 +24,7 @@ uartPort_t *serialUART1(uint32_t baudRate, portMode_t mode)
 	UART_BRGInit (MDR_UART1, UART_HCLKdiv1);
 	// USART1_RX    PA6
     // USART1_TX    PA7
+	PORT_StructInit(&Port_Initstructure);
 	Port_Initstructure.PORT_Pin 	= PORT_Pin_6;
 	Port_Initstructure.PORT_OE 		= PORT_OE_IN;
 	Port_Initstructure.PORT_MODE 	= PORT_MODE_DIGITAL;
@@ -63,6 +64,7 @@ uartPort_t *serialUART2(uint32_t baudRate, portMode_t mode)
 	UART_BRGInit (MDR_UART2, UART_HCLKdiv1);
 	// USART2_RX    PD0
     // USART2_TX    PD1
+	PORT_StructInit(&Port_Initstructure);
 	Port_Initstructure.PORT_Pin 	= PORT_Pin_0;
 	Port_Initstructure.PORT_OE 		= PORT_OE_IN;
 	Port_Initstructure.PORT_MODE 	= PORT_MODE_DIGITAL;
@@ -106,6 +108,7 @@ serialPort_t *uartOpen(MDR_UART_TypeDef *UARTx, serialReceiveCallbackPtr callbac
 	s->txDMAChannel = NULL;
 	
 	//UART_InitStructure.
+	UART_StructInit(&UART_InitStructure);
 	UART_InitStructure.UART_BaudRate = baudRate;
 	UART_InitStructure.UART_WordLength = UART_WordLength8b;
 	UART_InitStructure.UART_StopBits = UART_StopBits1;
