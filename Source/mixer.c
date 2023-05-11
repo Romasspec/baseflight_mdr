@@ -229,6 +229,7 @@ void writeAllMotors(int16_t mc)
 void mixTable(void)
 {
 	uint32_t i;
+	int16_t maxMotor;
 	
 	if (numberMotor > 3) {
         // prevent "yaw jump" during yaw correction
@@ -267,5 +268,45 @@ void mixTable(void)
 //            break;
     }
 	
+	 // constrain servos
+    for (i = 0; i < MAX_SERVOS; i++) {
+        servo[i] = constrain(servo[i], cfg.servoConf[i].min, cfg.servoConf[i].max); // limit the values
+	}
 	
+	maxMotor = motor[0];
+    for (i = 1; i < numberMotor; i++) {
+        if (motor[i] > maxMotor) {
+            maxMotor = motor[i];
+		}
+	}
+	
+	for (i = 0; i < numberMotor; i++) {
+        if (maxMotor > mcfg.maxthrottle && !f.FIXED_WING) {     // this is a way to still have good gyro corrections if at least one motor reaches its max.
+            motor[i] -= maxMotor - mcfg.maxthrottle;
+		}
+		
+		if (feature(FEATURE_3D)) {
+			
+			
+		} else {
+			motor[i] = constrain(motor[i], mcfg.minthrottle, mcfg.maxthrottle);
+			if ((rcData[THROTTLE]) < mcfg.mincheck) {
+				if (!feature(FEATURE_MOTOR_STOP)) {
+                    motor[i] = mcfg.minthrottle;
+                } else {
+                    motor[i] = mcfg.mincommand;
+                    f.MOTORS_STOPPED = 1;
+				}
+			} else {
+                f.MOTORS_STOPPED = 0;
+            }
+			
+		}
+		
+		if (!f.ARMED) {
+            motor[i] = motor_disarmed[i];
+            f.MOTORS_STOPPED = 1;
+        }
+		
+	}
 }
