@@ -211,7 +211,7 @@ static void getEstimatedAttitude(void)
 	float deltaGyroAngle[3];
 	static float accLPF[3];
 	int32_t accMag = 0;
-	 static t_fp_vector EstM;
+	static t_fp_vector EstM;
 	static t_fp_vector EstN = { .A = { 1.0f, 0.0f, 0.0f } };
 	
 	

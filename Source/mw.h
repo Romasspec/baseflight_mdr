@@ -39,6 +39,22 @@ enum {
 };
 
 enum {
+    INPUT_ROLL = 0,
+    INPUT_PITCH,
+    INPUT_YAW,
+    INPUT_THROTTLE,
+    INPUT_AUX1,
+    INPUT_AUX2,
+    INPUT_AUX3,
+    INPUT_AUX4,
+    INPUT_RC_ROLL,
+    INPUT_RC_PITCH,
+    INPUT_RC_YAW,
+    INPUT_RC_THROTTLE,
+    INPUT_ITEMS
+};
+
+enum {
     PIDROLL,
     PIDPITCH,
     PIDYAW,
@@ -193,12 +209,16 @@ typedef struct config_t {
 	uint16_t throttle_correction_angle;     // the angle when the throttle correction is maximal. in 0.1 degres, ex 225 = 22.5 ,30.0, 450 = 45.0 deg
 	
 	// Servo-related stuff
-    servoParam_t servoConf[MAX_SERVOS];     // servo configuration
+    servoParam_t servoConf[MAX_SERVOS];     // servo configuration	
 	
 	// Failsafe related configuration
 	uint16_t failsafe_throttle;             // Throttle level used for landing - specify value between 1000..2000 (pwm pulse width for slightly below hover). center throttle = 1500.
 
+	// mixer-related configuration
+    int8_t yaw_direction;
+
 	// fw-related stuff
+	uint8_t fw_vector_thrust;                  // Enable Vector trust on Twin Engine models
 	int16_t fw_gps_maxcorr;                    // Degrees banking Allowed by GPS.
     int16_t fw_gps_rudder;                     // Maximum input of Rudder Allowed by GPS.
     int16_t fw_gps_maxclimb;                   // Degrees climbing . To much can stall the plane.
@@ -217,11 +237,12 @@ typedef struct config_t {
 typedef struct master_t {
 	uint8_t version;
 	uint16_t size;
-	uint8_t magic_be;                       // magic number, should be 0xBE
+	uint8_t magic_be;                       		// magic number, should be 0xBE
 	
 	uint8_t mixerConfiguration;
 	uint32_t enabledFeatures;
-	uint16_t looptime;                      // imu loop time in us
+	uint16_t looptime;                      		// imu loop time in us
+	motorMixer_t customMixer[MAX_MOTORS];   		// custom mixtable
 	servoMixer_t customServoMixer[MAX_SERVO_RULES]; // custom servo mixtable
 	
 	// motor/esc/servo related stuff
@@ -231,6 +252,7 @@ typedef struct master_t {
 	uint16_t motor_pwm_rate;                // The update rate of motor outputs (50-498Hz)
 	uint16_t servo_pwm_rate;                // The update rate of servo outputs (50-498Hz)
 	uint8_t pwm_filter;                     // Hardware filter for incoming PWM pulses (larger = more filtering)
+	uint16_t neutral3d;                     // center 3d value
 	
 	// global sensor-related stuff
 	sensor_align_e gyro_align;              // gyro alignment
@@ -336,7 +358,10 @@ typedef struct flags_t {
 extern int16_t gyroZero[3];
 extern int16_t gyroData[3];
 extern int16_t angle[2];
+extern int16_t axisPID[3];
+extern int16_t rcCommand[4];
 extern uint8_t rcOptions[CHECKBOXITEMS];
+//extern int16_t failsafeCnt;
 
 extern int16_t debug[4];
 extern uint16_t acc_1G;
@@ -401,6 +426,7 @@ void ACC_getADC(void);
 
 // Output
 void mixerInit(void);
+void mixerResetMotors(void);
 void writeServos(void);
 void writeMotors(void);
 void writeAllMotors(int16_t mc);

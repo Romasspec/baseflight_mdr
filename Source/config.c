@@ -104,13 +104,15 @@ static void resetConf(void)
 	mcfg.board_align_yaw = 0;
 	mcfg.accZero[0] = 0;
     mcfg.accZero[1] = 0;
-    mcfg.accZero[2] = 0;
+    mcfg.accZero[2] = 0;	
+	mcfg.max_angle_inclination = 500;    // 50 degrees
 	mcfg.yaw_control_direction = 1;
 	mcfg.fw_althold_dir = 1;
 	// Motor/ESC/Servo
 	mcfg.minthrottle = 1150;
 	mcfg.maxthrottle = 1850;
 	mcfg.mincommand = 1000;
+	mcfg.neutral3d = 1460;
 	mcfg.motor_pwm_rate = MOTOR_PWM_RATE;
 	mcfg.servo_pwm_rate = 50;
 	mcfg.auto_disarm_board = 5; // auto disarm after 5 sec if motors not started or disarmed
@@ -176,7 +178,8 @@ static void resetConf(void)
         cfg.servoConf[i].middle = 1500;
         cfg.servoConf[i].rate = servoRates[i];
     }
-
+	cfg.yaw_direction = 1;
+		
 	// fw stuff
     cfg.fw_gps_maxcorr = 20;
     cfg.fw_gps_rudder = 15;
@@ -192,6 +195,11 @@ static void resetConf(void)
 	
 	// control stuff
     mcfg.reboot_character = 'R';
+	
+	// custom mixer. clear by defaults.
+    for (i = 0; i < MAX_MOTORS; i++) {
+        mcfg.customMixer[i].throttle = 0.0f;
+	}
 	
 	for(uint8_t i=0; i<3; i++)
 	{
