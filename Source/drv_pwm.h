@@ -48,7 +48,11 @@ enum {
 static void pwmGPIOConfig(MDR_PORT_TypeDef *gpio, uint32_t pin, PORT_FUNC_TypeDef func);
 void pwmICConfig(MDR_TIMER_TypeDef *tim, uint8_t channel, uint16_t polarity);
 void configureTimerCaptureCompareInterrupt(const timerHardware_t *timerHardwarePtr, uint8_t reference, timerCCCallbackPtr *callback);
-uint16_t pwmRead(uint8_t channel);
-bool pwmInit(drv_pwm_config_t *init);
+
+
 static void pwmOCConfig(MDR_TIMER_TypeDef *tim, uint8_t channel, uint16_t value);
 
+bool pwmInit(drv_pwm_config_t *init);
+void pwmWriteMotor(uint8_t index, uint16_t value);
+void pwmWriteServo(uint8_t index, uint16_t value);
+uint16_t pwmRead(uint8_t channel);

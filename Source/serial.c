@@ -464,7 +464,7 @@ static void evaluateCommand(void)
             break;
 			
 		case MSP_SERVO:
-            s_struct((uint8_t *)&servo, 16);
+            s_struct((uint8_t *)&servo, 2*MAX_SERVOS);
             break;
 			
         case MSP_SERVO_CONF:
@@ -560,7 +560,7 @@ static void evaluateCommand(void)
             break;
 			
 		case MSP_MOTOR:
-            s_struct((uint8_t *)motor, 16);
+            s_struct((uint8_t *)motor, 2*MAX_MOTORS);
             break;
 			
 		case MSP_RC:

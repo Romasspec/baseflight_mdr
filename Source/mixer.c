@@ -205,24 +205,67 @@ void mixerResetMotors(void)
 
 void writeServos(void)
 {
+	if (!core.useServo)
+        return;
 	
+	switch (mcfg.mixerConfiguration) {
+        case MULTITYPE_BI:
+            pwmWriteServo(0, servo[0]);
+            pwmWriteServo(1, servo[1]);
+            break;		
+
+        case MULTITYPE_FLYING_WING:
+            pwmWriteServo(0, servo[0]);
+            pwmWriteServo(1, servo[1]);
+            break;
+
+        case MULTITYPE_AIRPLANE:        
+            pwmWriteServo(0, servo[0]);
+            pwmWriteServo(1, servo[1]);
+            pwmWriteServo(2, servo[2]);
+            pwmWriteServo(3, servo[3]);
+            break;
+		
+		case MULTITYPE_CUSTOM_PLANE:
+            pwmWriteServo(0, servo[0]);
+            pwmWriteServo(1, servo[1]);
+            pwmWriteServo(2, servo[2]);
+            pwmWriteServo(3, servo[3]);
+            if (feature(FEATURE_PPM)) {
+                pwmWriteServo(0, servo[0]);
+                pwmWriteServo(1, servo[1]);
+                pwmWriteServo(2, servo[2]);
+                pwmWriteServo(3, servo[3]);
+            }
+            break;
+
+        default:
+            // Two servos for SERVO_TILT, if enabled
+            if (feature(FEATURE_SERVO_TILT)) {
+                pwmWriteServo(0, servo[0]);
+                pwmWriteServo(1, servo[1]);
+            }
+            break;
+	}
 }
 
 void writeMotors(void)
 {
-//    uint8_t i;
+    uint8_t i;
 
-//    for (i = 0; i < numberMotor; i++)
-//        pwmWriteMotor(i, motor[i]);
+    for (i = 0; i < numberMotor; i++) {
+        pwmWriteMotor(i, motor[i]);
+	}
 }
 
 void writeAllMotors(int16_t mc)
 {
-//    uint8_t i;
+    uint8_t i;
 
-//    // Sends commands to all motors
-//    for (i = 0; i < numberMotor; i++)
-//        motor[i] = mc;
+    // Sends commands to all motors
+    for (i = 0; i < numberMotor; i++) {
+        motor[i] = mc;
+	}
     writeMotors();
 }
 
@@ -286,8 +329,17 @@ void mixTable(void)
 		}
 		
 		if (feature(FEATURE_3D)) {
-			
-			
+			if ((rcData[THROTTLE]) > mcfg.midrc) {
+                motor[i] = constrain(motor[i], mcfg.deadband3d_high, mcfg.maxthrottle);
+//				if ((mcfg.mixerConfiguration) == MULTITYPE_TRI) {
+//                    servo[5] = constrain(servo[5], cfg.servoConf[5].min, cfg.servoConf[5].max);
+//                }
+			} else {
+                motor[i] = constrain(motor[i], mcfg.mincommand, mcfg.deadband3d_low);
+//                if ((mcfg.mixerConfiguration) == MULTITYPE_TRI) {
+//                    servo[5] = constrain(servo[5], cfg.servoConf[5].max, cfg.servoConf[5].min);
+//                }
+			}
 		} else {
 			motor[i] = constrain(motor[i], mcfg.minthrottle, mcfg.maxthrottle);
 			if ((rcData[THROTTLE]) < mcfg.mincheck) {
