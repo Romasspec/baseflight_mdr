@@ -231,9 +231,15 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
+<<<<<<< HEAD
       <ColumnNumber>12</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
       <TopLine>13</TopLine>
+=======
+      <ColumnNumber>8</ColumnNumber>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <TopLine>1</TopLine>
+>>>>>>> 5c6b5f76b0ca21bd03516932b70dc27bf2df607f
       <CurrentLine>24</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\Source\main.c</PathWithFileName>
@@ -247,10 +253,17 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
+<<<<<<< HEAD
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
       <TopLine>253</TopLine>
       <CurrentLine>236</CurrentLine>
+=======
+      <ColumnNumber>12</ColumnNumber>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <TopLine>68</TopLine>
+      <CurrentLine>69</CurrentLine>
+>>>>>>> 5c6b5f76b0ca21bd03516932b70dc27bf2df607f
       <bDave2>0</bDave2>
       <PathWithFileName>..\Source\config.c</PathWithFileName>
       <FilenameWithoutPath>config.c</FilenameWithoutPath>
@@ -281,8 +294,13 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
+<<<<<<< HEAD
       <TopLine>0</TopLine>
       <CurrentLine>0</CurrentLine>
+=======
+      <TopLine>60</TopLine>
+      <CurrentLine>66</CurrentLine>
+>>>>>>> 5c6b5f76b0ca21bd03516932b70dc27bf2df607f
       <bDave2>0</bDave2>
       <PathWithFileName>..\Source\drv_system.c</PathWithFileName>
       <FilenameWithoutPath>drv_system.c</FilenameWithoutPath>
@@ -311,10 +329,15 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>0</ColumnNumber>
+      <ColumnNumber>2</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
+<<<<<<< HEAD
       <TopLine>0</TopLine>
       <CurrentLine>0</CurrentLine>
+=======
+      <TopLine>1</TopLine>
+      <CurrentLine>20</CurrentLine>
+>>>>>>> 5c6b5f76b0ca21bd03516932b70dc27bf2df607f
       <bDave2>0</bDave2>
       <PathWithFileName>..\Source\UART.c</PathWithFileName>
       <FilenameWithoutPath>UART.c</FilenameWithoutPath>
@@ -327,10 +350,17 @@
       <FileType>1</FileType>
       <tvExp>1</tvExp>
       <Focus>0</Focus>
+<<<<<<< HEAD
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
       <TopLine>169</TopLine>
       <CurrentLine>383</CurrentLine>
+=======
+      <ColumnNumber>8</ColumnNumber>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <TopLine>373</TopLine>
+      <CurrentLine>399</CurrentLine>
+>>>>>>> 5c6b5f76b0ca21bd03516932b70dc27bf2df607f
       <bDave2>0</bDave2>
       <PathWithFileName>..\Source\mw.c</PathWithFileName>
       <FilenameWithoutPath>mw.c</FilenameWithoutPath>
@@ -343,10 +373,15 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>0</ColumnNumber>
+      <ColumnNumber>2</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
+<<<<<<< HEAD
       <TopLine>0</TopLine>
       <CurrentLine>0</CurrentLine>
+=======
+      <TopLine>1</TopLine>
+      <CurrentLine>5</CurrentLine>
+>>>>>>> 5c6b5f76b0ca21bd03516932b70dc27bf2df607f
       <bDave2>0</bDave2>
       <PathWithFileName>..\Source\drv_i2c.c</PathWithFileName>
       <FilenameWithoutPath>drv_i2c.c</FilenameWithoutPath>
@@ -391,10 +426,15 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>33</ColumnNumber>
+      <ColumnNumber>17</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
+<<<<<<< HEAD
       <TopLine>0</TopLine>
       <CurrentLine>0</CurrentLine>
+=======
+      <TopLine>8</TopLine>
+      <CurrentLine>30</CurrentLine>
+>>>>>>> 5c6b5f76b0ca21bd03516932b70dc27bf2df607f
       <bDave2>0</bDave2>
       <PathWithFileName>..\Source\sensors.c</PathWithFileName>
       <FilenameWithoutPath>sensors.c</FilenameWithoutPath>
@@ -423,10 +463,15 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>22</ColumnNumber>
+      <ColumnNumber>25</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
+<<<<<<< HEAD
       <TopLine>0</TopLine>
       <CurrentLine>0</CurrentLine>
+=======
+      <TopLine>152</TopLine>
+      <CurrentLine>176</CurrentLine>
+>>>>>>> 5c6b5f76b0ca21bd03516932b70dc27bf2df607f
       <bDave2>0</bDave2>
       <PathWithFileName>..\Source\drv_mpu.c</PathWithFileName>
       <FilenameWithoutPath>drv_mpu.c</FilenameWithoutPath>
@@ -649,8 +694,13 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
+<<<<<<< HEAD
       <TopLine>43</TopLine>
       <CurrentLine>46</CurrentLine>
+=======
+      <TopLine>17</TopLine>
+      <CurrentLine>31</CurrentLine>
+>>>>>>> 5c6b5f76b0ca21bd03516932b70dc27bf2df607f
       <bDave2>0</bDave2>
       <PathWithFileName>..\Source\imu.c</PathWithFileName>
       <FilenameWithoutPath>imu.c</FilenameWithoutPath>
@@ -665,8 +715,13 @@
       <Focus>0</Focus>
       <ColumnNumber>13</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
+<<<<<<< HEAD
       <TopLine>293</TopLine>
       <CurrentLine>302</CurrentLine>
+=======
+      <TopLine>242</TopLine>
+      <CurrentLine>266</CurrentLine>
+>>>>>>> 5c6b5f76b0ca21bd03516932b70dc27bf2df607f
       <bDave2>0</bDave2>
       <PathWithFileName>..\Source\mixer.c</PathWithFileName>
       <FilenameWithoutPath>mixer.c</FilenameWithoutPath>
@@ -679,10 +734,15 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>20</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
+<<<<<<< HEAD
       <TopLine>0</TopLine>
       <CurrentLine>0</CurrentLine>
+=======
+      <TopLine>52</TopLine>
+      <CurrentLine>86</CurrentLine>
+>>>>>>> 5c6b5f76b0ca21bd03516932b70dc27bf2df607f
       <bDave2>0</bDave2>
       <PathWithFileName>..\Source\drv_uart.c</PathWithFileName>
       <FilenameWithoutPath>drv_uart.c</FilenameWithoutPath>
@@ -729,8 +789,13 @@
       <Focus>0</Focus>
       <ColumnNumber>77</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
+<<<<<<< HEAD
       <TopLine>119</TopLine>
       <CurrentLine>126</CurrentLine>
+=======
+      <TopLine>3</TopLine>
+      <CurrentLine>4</CurrentLine>
+>>>>>>> 5c6b5f76b0ca21bd03516932b70dc27bf2df607f
       <bDave2>0</bDave2>
       <PathWithFileName>..\Source\drv_pwm.c</PathWithFileName>
       <FilenameWithoutPath>drv_pwm.c</FilenameWithoutPath>
@@ -791,10 +856,17 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
+<<<<<<< HEAD
       <ColumnNumber>34</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
       <TopLine>561</TopLine>
       <CurrentLine>569</CurrentLine>
+=======
+      <ColumnNumber>0</ColumnNumber>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <TopLine>251</TopLine>
+      <CurrentLine>265</CurrentLine>
+>>>>>>> 5c6b5f76b0ca21bd03516932b70dc27bf2df607f
       <bDave2>0</bDave2>
       <PathWithFileName>..\Source\serial.c</PathWithFileName>
       <FilenameWithoutPath>serial.c</FilenameWithoutPath>
@@ -825,8 +897,13 @@
       <Focus>0</Focus>
       <ColumnNumber>2</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
+<<<<<<< HEAD
       <TopLine>0</TopLine>
       <CurrentLine>0</CurrentLine>
+=======
+      <TopLine>83</TopLine>
+      <CurrentLine>101</CurrentLine>
+>>>>>>> 5c6b5f76b0ca21bd03516932b70dc27bf2df607f
       <bDave2>0</bDave2>
       <PathWithFileName>..\Source\gps.c</PathWithFileName>
       <FilenameWithoutPath>gps.c</FilenameWithoutPath>

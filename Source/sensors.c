@@ -56,7 +56,7 @@ bool sensorsAutodetect(void)
 	}
 	
 	// this is safe because either mpu6050 or mpu3050 or lg3d20 sets it, and in case of fail, we never get here.
-//	gyro.init(mcfg.gyro_align);
+	gyro.init(mcfg.gyro_align);
 	
 	return haveMpu;
 }

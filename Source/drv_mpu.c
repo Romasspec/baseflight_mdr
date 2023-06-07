@@ -100,8 +100,7 @@ bool mpuDetect(sensor_t *acc, sensor_t *gyro, mpu_params_t *init)
 	mpu.gyro_xout = MPU_RA_GYRO_XOUT_H;
 	mpu.acc_xout = MPU_RA_ACCEL_XOUT_H;
 
-	mpu.read(MPU_RA_WHO_AM_I, &sig, 1);
-		
+	mpu.read(MPU_RA_WHO_AM_I, &sig, 1);	
 	sig &= 0x7E; // mask the lower/upper bits per MPUxxxx spec
 
 	if (sig == MPUx0x0_WHO_AM_I_CONST)

@@ -2,6 +2,7 @@
 #include "uart.h"
 
 #define I2C_DEFAULT_TIMEOUT 300000
+//#define DEBUG_I2C
 static volatile uint16_t i2cErrorCount = 0;
 
 static volatile bool error = false;
@@ -16,9 +17,17 @@ static volatile uint8_t *write_p;
 static volatile uint8_t *read_p;
 
 static volatile uint8_t flag_I2c;
+
+#ifdef DEBUG_I2C
+	#define SIZE_DEBUG 	15
+	uint8_t data_debug[SIZE_DEBUG], debug_index = 0;
+#endif
+
 #define START_SENT 		(uint8_t) (0x01)
 #define ADDRES_SENT		(uint8_t) (0x02)
 #define READ_BYTE_1		(uint8_t) (0x04)
+#define STOP_SENT 		(uint8_t) (0x08)
+#define ERROR_SENT 		(uint8_t) (0x10)
 #define READ					(uint8_t) (0x08)
 
 typedef struct i2cDevice_t {
@@ -247,6 +256,13 @@ bool i2cStartTranzaction(void)
 {
 	uint32_t timeout = I2C_DEFAULT_TIMEOUT;
 	
+#ifdef DEBUG_I2C	
+	for (debug_index = 0; debug_index < SIZE_DEBUG; debug_index++) {
+		data_debug[debug_index] = 0;
+	}
+	debug_index = 0;
+#endif
+	
 	if (!I2Cx)
 	{
 		return false;
@@ -273,6 +289,10 @@ bool i2cStartTranzaction(void)
 	timeout = I2C_DEFAULT_TIMEOUT;
 	while (busy && --timeout > 0)
 	{}
+	
+#ifdef DEBUG_I2C	
+	uartTransmit(data_debug, SIZE_DEBUG);
+#endif
 		
 	if (timeout == 0)
 	{
@@ -295,6 +315,10 @@ void I2C_IRQHandler (void)
 			index = 0;
 			I2C_SendByte (reg);
 			flag_I2c = ADDRES_SENT;
+			I2Cx->CMD &= ~I2C_CMD_START;
+#ifdef DEBUG_I2C
+			data_debug[debug_index++] = 0x01;
+#endif
 		}
 		else if (flag_I2c & ADDRES_SENT)
 		{
@@ -303,10 +327,16 @@ void I2C_IRQHandler (void)
 			{
 				I2C_Send7bitAddress(addr, I2C_Direction_Receiver);
 				flag_I2c = READ_BYTE_1;
+#ifdef DEBUG_I2C				
+				data_debug[debug_index++] = 0x02;
+#endif
 			}
 			else
 			{
 				I2C_SendByte(write_p[index]);
+#ifdef DEBUG_I2C
+				data_debug[debug_index++] = 0x03;
+#endif
 			}
 		}
 		else if (flag_I2c & READ_BYTE_1)
@@ -314,12 +344,28 @@ void I2C_IRQHandler (void)
 			if(--bytes != 0)
 			{				
 				I2C_StartReceiveData(I2C_Send_to_Slave_ACK);
+#ifdef DEBUG_I2C
+				data_debug[debug_index++] = 0x04;
+#endif
 			}
 			else
 			{
 				I2C_StartReceiveData(I2C_Send_to_Slave_NACK);				
+#ifdef DEBUG_I2C
+				data_debug[debug_index++] = 0x05;				
+#endif
 			}					
-			flag_I2c &=~READ_BYTE_1;
+			flag_I2c = 0;
+		}
+		else if (flag_I2c & STOP_SENT)
+		{
+			flag_I2c = 0;
+			busy = 0;
+			I2C_ITConfig (DISABLE);
+			I2Cx->CMD &= ~I2C_CMD_STOP;
+#ifdef DEBUG_I2C			
+			data_debug[debug_index++] = 0x06;
+#endif
 		}
 		else
 		{			
@@ -329,18 +375,27 @@ void I2C_IRQHandler (void)
 				{	
 					read_p[index++] = I2C_GetReceivedData();
 					I2C_StartReceiveData(I2C_Send_to_Slave_ACK);
+#ifdef DEBUG_I2C
+					data_debug[debug_index++] = 0x07;
+#endif
 				}
 				else
 				{
 					read_p[index++] = I2C_GetReceivedData();
 					I2C_StartReceiveData(I2C_Send_to_Slave_NACK);				
+#ifdef DEBUG_I2C
+					data_debug[debug_index++] = 0x08;					
+#endif
 				}	
 			}
 			else
-			{
-				I2C_SendSTOP();
+			{				
 				I2C_ITConfig (DISABLE);
+				I2C_SendSTOP();
 				busy = 0;	
+#ifdef DEBUG_I2C
+				data_debug[debug_index++] = 0x09;				
+#endif
 			}
 		}		
 	}
@@ -349,31 +404,59 @@ void I2C_IRQHandler (void)
 		
 		if(flag_I2c & START_SENT)
 		{
-			flag_I2c = 0;
 			I2C_SendSTOP();
+			flag_I2c = ERROR_SENT;			
+#ifdef DEBUG_I2C
+			data_debug[debug_index++] = 0x0A;
+#endif
+		}
+		else if (flag_I2c & STOP_SENT)
+		{
+			flag_I2c = 0;
+			busy = 0;
 			I2C_ITConfig (DISABLE);
+			I2Cx->CMD &= ~I2C_CMD_STOP;
+#ifdef DEBUG_I2C
+			data_debug[debug_index++] = 0x0B;
+#endif
+		}
+		else if (flag_I2c & ERROR_SENT)
+		{
+			flag_I2c = 0;			
+			I2C_ITConfig (DISABLE);
+			I2Cx->CMD &= ~I2C_CMD_STOP;
+#ifdef DEBUG_I2C
+			data_debug[debug_index++] = 0x0C;
+#endif
 		}
 		else
-		{
-			
+		{			
 			if(bytes != 0)
 			{				
 				read_p[index++] = I2C_GetReceivedData();
 				if(--bytes != 0)
 				{				
 					I2C_StartReceiveData(I2C_Send_to_Slave_ACK);
+#ifdef DEBUG_I2C
+					data_debug[debug_index++] = 0x0D;
+#endif
 				}
 				else
 				{
 					I2C_StartReceiveData(I2C_Send_to_Slave_NACK);					
+#ifdef DEBUG_I2C
+					data_debug[debug_index++] = 0x0E;					
+#endif
 				}		
 			}
 			else
 			{				
 				read_p[index] = I2C_GetReceivedData();
 				I2C_SendSTOP();
-				I2C_ITConfig (DISABLE);
-				busy = 0;				
+				flag_I2c = STOP_SENT;
+#ifdef DEBUG_I2C
+				data_debug[debug_index++] = 0x0F;
+#endif				
 			}
 		}
 	}
