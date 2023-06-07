@@ -11,7 +11,7 @@
 
 #define FLASH_PAGE_SIZE                 ((uint16_t)0x400)
 // if sizeof(mcfg) is over this number, compile-time error will occur. so, need to add another page to config data.
-#define CONFIG_SIZE                     (FLASH_PAGE_SIZE)
+#define CONFIG_SIZE                     (FLASH_PAGE_SIZE * 2)
 
 
 master_t mcfg;  // master config struct with data independent from profiles
@@ -30,7 +30,7 @@ void initEEPROM (void)
 
 static uint8_t validEEPROM(void)
 {
-	const master_t *temp = (const master_t *) &mcfg;
+	const master_t *temp =  &mcfg;  //(const master_t *)&mcfg
 	const uint8_t *p;
 	uint8_t chk = 0;
 	
@@ -69,7 +69,7 @@ uint8_t checkFirstTime(bool reset)
 	readEEPROM();
 	if (!validEEPROM() || reset)
 	{
-
+		togle_PF6;
 		resetConf();		
 		writeEEPROM(0, false);
 		return 1;
@@ -173,7 +173,9 @@ static void resetConf(void)
 	
 	cfg.throttle_correction_angle = 800;    // could be 80.0 deg with atlhold or 45.0 for fpv
 	
+	// Failsafe Variables
 	cfg.failsafe_throttle = 1200;           // decent default which should always be below hover throttle for people.
+	cfg.failsafe_detect_threshold = 985;    // any of first 4 channels below this value will trigger failsafe
 	
 	// servos
     for (i = 0; i < 8; i++) {
@@ -231,6 +233,7 @@ void writeEEPROM (uint8_t b, uint8_t updateProfile)
 	mcfg.chk = chk;
 	
 	FLASH_ErasePage (FLASH_WRITE_ADDR, EEPROM_Info_Bank_Select);
+	FLASH_ErasePage (FLASH_WRITE_ADDR + FLASH_PAGE_SIZE, EEPROM_Info_Bank_Select);
 	for (uint16_t i=0; i < sizeof(master_t); i+=4)
 	{		
 		//FLASH_ProgramByte (FLASH_WRITE_ADDR+i, *((uint8_t *)&mcfg + i), EEPROM_Info_Bank_Select);
@@ -252,11 +255,16 @@ void writeEEPROM (uint8_t b, uint8_t updateProfile)
 
 void readEEPROM(void)
 {
+//	for (uint16_t i=0; i < sizeof (master_t); i ++)
+//	 {		
+//		 FLASH_ReadByte (FLASH_WRITE_ADDR + i, (uint8_t*)&mcfg + i, EEPROM_Info_Bank_Select);		 
+//	 }
+	 
 	// Sanity check
-   if (!validEEPROM())
-	 {
-//		 failureMode(10);
-	 }        
+//   if (!validEEPROM())
+//	 {
+////		 failureMode(10);
+//	 }        
 
    // Read flash	 
 	 memset (&mcfg, 0xBB, sizeof (master_t));

@@ -24,6 +24,7 @@ enum {
 typedef void (*pwmWriteFuncPtr)(uint8_t index, uint16_t value);  // function pointer used to write motors
 
 static bool syncPWM = false;
+static uint16_t failsafeThreshold = 985;
 static uint8_t numInputs = 0;
 static uint8_t numMotors = 0;
 static uint8_t numServos = 0;
@@ -284,6 +285,15 @@ bool pwmInit(drv_pwm_config_t *init)
 	int i = 0;
 	uint16_t period;
 	const uint8_t *setup;
+	
+	// to avoid importing cfg/mcfg
+    failsafeThreshold = init->failsafeThreshold;
+	
+	// this is pretty hacky shit, but it will do for now. array of 4 config maps, [ multiPWM multiPPM airPWM airPPM ]
+    if (init->airplane)
+        i = 2; // switch to air hardware config
+    if (init->usePPM)
+        i++; // next index is for PPM
 	
 	setup = hardwareMaps[i];
 	

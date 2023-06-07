@@ -213,7 +213,8 @@ typedef struct config_t {
 	
 	// Failsafe related configuration
 	uint16_t failsafe_throttle;             // Throttle level used for landing - specify value between 1000..2000 (pwm pulse width for slightly below hover). center throttle = 1500.
-
+	uint16_t failsafe_detect_threshold;     // Update controls channel only if pulse is above failsafe_detect_threshold. below this trigger failsafe.
+	
 	// mixer-related configuration
     int8_t yaw_direction;
 

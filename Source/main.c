@@ -27,7 +27,7 @@ int main(void)
 //		UART_SendData (MDR_UART2, 0xFF);
 //	}
 	
-	readEEPROM();
+//	readEEPROM();
 	
 //	uartTransmit ((uint8_t*) &mcfg, 1);
 	
@@ -104,12 +104,20 @@ int main(void)
 	pwm_params.useUART = feature(FEATURE_GPS) || feature(FEATURE_SERIALRX); // spektrum/sbus support uses UART too
 	pwm_params.useSoftSerial = feature(FEATURE_SOFTSERIAL);
 	pwm_params.usePPM = feature(FEATURE_PPM);
+	pwm_params.enableInput = !feature(FEATURE_SERIALRX); // disable inputs if using spektrum
+	pwm_params.useServos = core.useServo;
 	pwm_params.motorPwmRate = mcfg.motor_pwm_rate;
 	pwm_params.servoPwmRate = mcfg.servo_pwm_rate;
 	pwm_params.pwmFilter = mcfg.pwm_filter;
 	pwm_params.idlePulse = PULSE_1MS; // standard PWM for brushless ESC (default, overridden below)
+	if (feature(FEATURE_3D))
+        pwm_params.idlePulse = mcfg.neutral3d;
+    if (pwm_params.motorPwmRate > 500)
+        pwm_params.idlePulse = 0; // brushed motors
 	pwm_params.syncPWM = feature(FEATURE_SYNCPWM);
 	pwm_params.fastPWM = feature(FEATURE_FASTPWM);
+	pwm_params.servoCenterPulse = mcfg.midrc;
+	pwm_params.failsafeThreshold = cfg.failsafe_detect_threshold;
 	
 	pwmInit(&pwm_params);
 	core.numServos = pwm_params.numServos;
