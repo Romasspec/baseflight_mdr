@@ -16,7 +16,7 @@ enum {
 	ALT
 };
 
-#define RC_CHANS    (6)
+#define RC_CHANS    (8)
 
 typedef enum MultiType {
 		MULTITYPE_TRI = 1,
