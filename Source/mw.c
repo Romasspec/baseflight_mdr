@@ -125,7 +125,7 @@ void loop(void)
 	
 	bool rcReady = false;
 	bool isThrottleLow = false;
-	
+	togle_PF4;
 	if (((int32_t)(currentTime - rcTime) >= 0) || rcReady) {				// 50Hz or data driven
 		rcReady = false;
 		rcTime = currentTime + 20000;
@@ -380,7 +380,7 @@ void loop(void)
         loopTime = currentTime + mcfg.looptime;
 		computeIMU();
 		
-		togle_PF4;
+		
 		
         // Measure loop rate just afer reading the sensors
         currentTime = micros();
@@ -409,9 +409,8 @@ void computeRC(void)
 	static int rcAverageIndex = 0;
 	
 	for (chan = 0; chan < mcfg.rc_channel_count; chan++)
-	{
+	{		
 		capture = rcReadRawFunc(chan);
-		
 		// validate input
 		if (capture < PULSE_MIN || capture > PULSE_MAX)
 		{
@@ -426,7 +425,7 @@ void computeRC(void)
 		}		
 		rcData[chan] /= 4;		
 	}	
-	rcAverageIndex++;
+	rcAverageIndex++;	
 }
 
 static void mwArm(void)

@@ -223,13 +223,13 @@ static void ppmCallback(uint8_t port, uint16_t capture)
 	static uint16_t now;
 	static uint16_t last = 0;
 	static uint8_t chan = 0;
-
+	togle_PF6;
 	last = now;
 	now = capture;
 	diff = now - last;
-	togle_PF6;
 
-	if (diff > 2700 || chan > MAX_PPM_INPUTS) { // Per http://www.rcgroups.com/forums/showpost.php?p=21996147&postcount=3960 "So, if you use 2.5ms or higher as being the reset for the PPM stream start, you will be fine. I use 2.7ms just to be safe."
+
+	if (diff > 2700/* || chan > MAX_PPM_INPUTS*/) { // Per http://www.rcgroups.com/forums/showpost.php?p=21996147&postcount=3960 "So, if you use 2.5ms or higher as being the reset for the PPM stream start, you will be fine. I use 2.7ms just to be safe."
 			chan = 0;
 	} else {
 			if (diff > PULSE_MIN && diff < PULSE_MAX && chan < MAX_PPM_INPUTS) {   // 750 to 2250 ms is our 'valid' channel range

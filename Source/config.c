@@ -138,6 +138,9 @@ static void resetConf(void)
 	mcfg.looptime = 3500;
 	mcfg.rssi_aux_channel = 0;
 	
+	for (i=0; i<mcfg.rc_channel_count; i++)
+	mcfg.rcmap[i] = i;
+	
 	// serial (USART2) baudrate
 	mcfg.serial_baudrate = 115200;
 	
