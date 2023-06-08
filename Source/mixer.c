@@ -5,7 +5,7 @@ static uint8_t numberMotor = 0;
 static uint8_t numberRules = 0;
 int16_t motor[MAX_MOTORS];
 int16_t motor_disarmed[MAX_MOTORS];
-int16_t servo[MAX_SERVOS] = { 1500, 1500, 1500, 1500};
+int16_t servo[MAX_SERVOS] = { 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500};
 
 static motorMixer_t currentMixer[MAX_MOTORS];
 static servoMixer_t currentServoMixer[MAX_SERVO_RULES];
