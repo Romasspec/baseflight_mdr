@@ -203,22 +203,18 @@ static int16_t calculateHeading(t_fp_vector *vec)
 
 static void getEstimatedAttitude(void)
 {
-    int32_t axis;
-	static uint32_t previousT = 0;
-	uint32_t currentT;
-	uint32_t deltaT;
-	float scale;
-	float deltaGyroAngle[3];
-	static float accLPF[3];
-	int32_t accMag = 0;
-	static t_fp_vector EstM;
-	static t_fp_vector EstN = { .A = { 1.0f, 0.0f, 0.0f } };
-	
-	
-	currentT = micros();
-	deltaT = currentT - previousT;
+	int32_t axis;
+    int32_t accMag = 0;
+    static t_fp_vector EstM;
+    static t_fp_vector EstN = { .A = { 1.0f, 0.0f, 0.0f } };
+    static float accLPF[3];
+    static uint32_t previousT;
+    uint32_t currentT = micros();
+    uint32_t deltaT;
+    float scale, deltaGyroAngle[3];
+    deltaT = currentT - previousT;
     scale = deltaT * gyro.scale;
-    previousT = currentT;
+    previousT = currentT;   
 	
 	// Initialization
     for (axis = 0; axis < 3; axis++) {

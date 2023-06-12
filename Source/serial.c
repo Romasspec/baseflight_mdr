@@ -77,6 +77,9 @@
 #define INBUF_SIZE 128
 #define MAX_SERIAL_INPUTS 8
 
+#define MSP_GET_I2C_REG			124
+#define MSP_SET_I2C_REG			125
+
 typedef struct box_t {
     const uint8_t boxIndex;         // this is from boxnames enum
     const char *boxName;            // GUI-readable box name
@@ -295,11 +298,13 @@ uint8_t serialRead(serialPort_t *instance)
     return instance->vTable->serialRead(instance);
 }
 
+
 static void evaluateCommand(void)
 {
 	uint32_t i, j, tmp, junk;
 	const char *build = __DATE__;
-	
+	uint8_t adr=0, reg=0, length=0, data[15]={0,0,0,0};
+
 #ifdef GPS
     uint8_t wp_no;
     int32_t lat = 0, lon = 0, alt = 0;
@@ -307,6 +312,25 @@ static void evaluateCommand(void)
 	
 	switch (currentPortState->cmdMSP)
 	{
+		case MSP_GET_I2C_REG:
+			adr = read8();
+			reg = read8();
+			length = read8();
+			i2cRead(adr, reg, length, data);
+			serialize8(data[0]);		
+		break;
+		
+		case MSP_SET_I2C_REG:
+			adr = read8();
+			reg = read8();
+			data[0] = read8();
+			i2cWrite(adr, reg+1, data[0]);
+			if(i2cWrite(adr, reg, data[0]))
+			serialize8(data[0]);
+			else
+			serialize8 (0xFF);
+		break;
+			
 		case MSP_SET_RAW_RC:
             for (i = 0; i < 8; i++)
                 rcData[i] = read16();
@@ -569,7 +593,7 @@ static void evaluateCommand(void)
                 serialize16(rcData[i]);
             break;
 
-#ifdef GPS
+//#ifdef GPS
         case MSP_RAW_GPS:
             headSerialReply(16);
             serialize8(f.GPS_FIX);
@@ -580,7 +604,7 @@ static void evaluateCommand(void)
             serialize16(GPS_speed);
             serialize16(GPS_ground_course);
             break;
-		
+#ifdef GPS		
         case MSP_COMP_GPS:
             headSerialReply(5);
             serialize16(GPS_distanceToHome);

@@ -68,10 +68,10 @@ uint8_t checkFirstTime(bool reset)
 	// check the EEPROM integrity before resetting values
 	readEEPROM();
 	if (!validEEPROM() || reset)
-	{
-		togle_PF6;
+	{		
 		resetConf();		
 		writeEEPROM(0, false);
+		readEEPROM();
 		return 1;
 	}
 	return 0;
@@ -160,6 +160,8 @@ static void resetConf(void)
 	cfg.P8[PIDMAG] = 40;
 	cfg.rcRate8 = 90;
 	cfg.rcExpo8 = 65;
+	cfg.thrMid8 = 50;
+	cfg.thrExpo8 = 0;
 	cfg.yawRate = 0;
 	cfg.mag_declination = 0;    // For example, -6deg 37min, = -637 Japan, format is [sign]dddmm (degreesminutes) default is zero.
 	cfg.angleTrim[0] = 0;
@@ -228,6 +230,12 @@ void writeEEPROM (uint8_t b, uint8_t updateProfile)
 	mcfg.magic_ef = 0xEF;
 	mcfg.chk = 0;
 	
+	// when updateProfile = true, we copy contents of cfg to global configuration. when false, only profile number is updated, and then that profile is loaded on readEEPROM()
+    if (updateProfile) {
+        // copy current in-memory profile to stored configuration
+        memcpy(&mcfg.profile[mcfg.current_profile], &cfg, sizeof(config_t));
+    }
+	
 	// recalculate checksum before writing
 	for (p = (const uint8_t *)&mcfg; p < ((const uint8_t *)&mcfg + sizeof(master_t)); p++)
 	{
@@ -236,16 +244,17 @@ void writeEEPROM (uint8_t b, uint8_t updateProfile)
 	mcfg.chk = chk;
 	
 	FLASH_ErasePage (FLASH_WRITE_ADDR, EEPROM_Info_Bank_Select);
-	FLASH_ErasePage (FLASH_WRITE_ADDR + FLASH_PAGE_SIZE, EEPROM_Info_Bank_Select);
+	//FLASH_ErasePage (FLASH_WRITE_ADDR + FLASH_PAGE_SIZE, EEPROM_Info_Bank_Select);
 	for (uint16_t i=0; i < sizeof(master_t); i+=4)
 	{		
 		//FLASH_ProgramByte (FLASH_WRITE_ADDR+i, *((uint8_t *)&mcfg + i), EEPROM_Info_Bank_Select);
 		FLASH_ProgramWord (FLASH_WRITE_ADDR + i, *(uint32_t*)((uint8_t*)&mcfg + i), EEPROM_Info_Bank_Select);
+		togle_PF6;
 	}
 	 
 	if (!validEEPROM())
 	{
-//		failureMode(10);
+		failureMode(10);
 	}
 	
 	// re-read written data
@@ -257,25 +266,20 @@ void writeEEPROM (uint8_t b, uint8_t updateProfile)
 }
 
 void readEEPROM(void)
-{
-//	for (uint16_t i=0; i < sizeof (master_t); i ++)
-//	 {		
-//		 FLASH_ReadByte (FLASH_WRITE_ADDR + i, (uint8_t*)&mcfg + i, EEPROM_Info_Bank_Select);		 
-//	 }
+{ 	
+   	 memset (&mcfg, 0xBB, sizeof (master_t));
 	 
-	// Sanity check
-//   if (!validEEPROM())
-//	 {
-////		 failureMode(10);
-//	 }        
-
-   // Read flash	 
-	 memset (&mcfg, 0xBB, sizeof (master_t));
-	 
+	 // Read flash
 	 for (uint16_t i=0; i < sizeof (master_t); i ++)
-	 {		
+	 {	
+		 togle_PF4;
 		 FLASH_ReadByte (FLASH_WRITE_ADDR + i, (uint8_t*)&mcfg + i, EEPROM_Info_Bank_Select);		 
-	 } 
+	 }
+	 
+	 // Copy current profile
+    if (mcfg.current_profile > 2) // sanity check
+        mcfg.current_profile = 0;
+    memcpy(&cfg, &mcfg.profile[mcfg.current_profile], sizeof(config_t));
 }
 
 bool sensors(uint32_t mask)
@@ -285,6 +289,21 @@ bool sensors(uint32_t mask)
 
 void activateConfig(void)
 {
+	uint8_t i;
+    for (i = 0; i < PITCH_LOOKUP_LENGTH; i++)
+        lookupPitchRollRC[i] = (2500 + cfg.rcExpo8 * (i * i - 25)) * i * (int32_t)cfg.rcRate8 / 2500;
+
+    for (i = 0; i < THROTTLE_LOOKUP_LENGTH; i++) {
+        int16_t tmp = 10 * i - cfg.thrMid8;
+        uint8_t y = 1;
+        if (tmp > 0)
+            y = 100 - cfg.thrMid8;
+        if (tmp < 0)
+            y = cfg.thrMid8;
+        lookupThrottleRC[i] = 10 * cfg.thrMid8 + tmp * (100 - cfg.thrExpo8 + (int32_t)cfg.thrExpo8 * (tmp * tmp) / (y * y)) / 10;
+        lookupThrottleRC[i] = mcfg.minthrottle + (int32_t)(mcfg.maxthrottle - mcfg.minthrottle) * lookupThrottleRC[i] / 1000; // [MINTHROTTLE;MAXTHROTTLE]
+    }
+	
 	setPIDController(cfg.pidController);
 #ifdef GPS
 	gpsSetPIDs();

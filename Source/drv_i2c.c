@@ -28,7 +28,7 @@ static volatile uint8_t flag_I2c;
 #define READ_BYTE_1		(uint8_t) (0x04)
 #define STOP_SENT 		(uint8_t) (0x08)
 #define ERROR_SENT 		(uint8_t) (0x10)
-#define READ					(uint8_t) (0x08)
+//#define READ					(uint8_t) (0x08)
 
 typedef struct i2cDevice_t {
 	MDR_I2C_TypeDef *dev;
@@ -133,7 +133,7 @@ void i2cInit(I2CDevice index)
 	RST_CLK_PCLKcmd ( i2cHardwareMap[index].peripheral, ENABLE);
 	
 	// clock out stuff to make sure slaves arent stuck
-  // This will also configure GPIO as AF_OD at the end
+	// This will also configure GPIO as AF_OD at the end
 	i2cUnstick();	
 	
 	I2C_DeInit();
@@ -366,7 +366,7 @@ void I2C_IRQHandler (void)
 #ifdef DEBUG_I2C			
 			data_debug[debug_index++] = 0x06;
 #endif
-		}
+		}		
 		else
 		{			
 			if(reading)
@@ -390,9 +390,10 @@ void I2C_IRQHandler (void)
 			}
 			else
 			{				
-				I2C_ITConfig (DISABLE);
+				//I2C_ITConfig (DISABLE);
 				I2C_SendSTOP();
-				busy = 0;	
+				flag_I2c = STOP_SENT;
+				//busy = 0;	
 #ifdef DEBUG_I2C
 				data_debug[debug_index++] = 0x09;				
 #endif

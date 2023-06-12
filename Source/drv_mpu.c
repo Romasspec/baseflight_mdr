@@ -101,13 +101,17 @@ bool mpuDetect(sensor_t *acc, sensor_t *gyro, mpu_params_t *init)
 	mpu.acc_xout = MPU_RA_ACCEL_XOUT_H;
 
 	mpu.read(MPU_RA_WHO_AM_I, &sig, 1);	
-	sig &= 0x7E; // mask the lower/upper bits per MPUxxxx spec
+	sig &= 0x7F; // mask the lower/upper bits per MPUxxxx spec
 
 	if (sig == MPUx0x0_WHO_AM_I_CONST)
 	{
 		hw = MPU_60x0;
 		mpu6050CheckRevision();
 		mpu.init = mpu6050Init;
+	} else if (sig == 0x75) {
+		hw = MPU_60x0;
+		mpu.init = mpu6050Init;
+		acc_1G = 255 * 8;
 	}
 	
 	// We're done. Nothing was found on any bus.
@@ -149,6 +153,7 @@ bool mpuDetect(sensor_t *acc, sensor_t *gyro, mpu_params_t *init)
 #define MPU_RA_INT_PIN_CFG      0x37
 #define MPU_RA_INT_ENABLE       0x38
 #define MPU_RA_PWR_MGMT_1       0x6B
+#define MPU_RA_SIGNAL_PATH_RST  0x68
 
 
 // MPU6050 bits
@@ -157,24 +162,27 @@ bool mpuDetect(sensor_t *acc, sensor_t *gyro, mpu_params_t *init)
 static void mpu6050Init(sensor_t *acc, sensor_t *gyro)
 {
 	// Device reset
-	mpu.write(MPU_RA_PWR_MGMT_1, 0x80); // Device reset
-	delay(100);
-	// Gyro config
-	mpu.write(MPU_RA_PWR_MGMT_1, MPU6050_INV_CLK_GYROZ); // Clock source = 3 (PLL with Z Gyro reference)
-	delay(10);
-	mpu.write(MPU_RA_SMPLRT_DIV, 0x00); // Sample Rate = Gyroscope Output Rate / (1 + SMPLRT_DIV)
-	mpu.write(MPU_RA_CONFIG, mpuLowPassFilter); // set DLPF
-	mpu.write(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3); // full-scale 2kdps gyro range
-	mpu.write(MPU_RA_ACCEL_CONFIG, INV_FSR_8G << 3);	// Accel scale 8g (4096 LSB/g)
-	
-	// Data ready interrupt configuration
-	mpu.write(MPU_RA_INT_PIN_CFG, 0 << 7 | 0 << 6 | 0 << 5 | 1 << 4 | 0 << 3 | 0 << 2 | 1 << 1 | 0 << 0);  // INT_RD_CLEAR_DIS, I2C_BYPASS_EN
-	mpu.write(MPU_RA_INT_ENABLE, 0x01); // DATA_RDY_EN interrupt enable
-	
-	acc->init = mpuAccInit;
-	acc->read = mpuAccRead;
-	gyro->init = mpuGyroInit;
-	gyro->read = mpuGyroRead;
+    mpu.write(MPU_RA_PWR_MGMT_1, 0x80); // Device reset
+    delay(100);
+    mpu.write(MPU_RA_SIGNAL_PATH_RST, 0x07); // Signal path reset
+    delay(100);
+    // Gyro config
+    mpu.write(MPU_RA_PWR_MGMT_1, INV_CLK_PLL); // Clock source = 1 (Auto-select PLL or else intrc)
+    delay(10);
+    mpu.write(MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3);
+    mpu.write(MPU_RA_CONFIG, mpuLowPassFilter); // set DLPF
+    mpu.write(MPU_RA_SMPLRT_DIV, 0); // 1kHz S/R
+    // Accel config
+    mpu.write(MPU_RA_ACCEL_CONFIG, INV_FSR_8G << 3);
+
+    // Data ready interrupt configuration
+    mpu.write(MPU_RA_INT_PIN_CFG, 0 << 7 | 0 << 6 | 0 << 5 | 1 << 4 | 0 << 3 | 0 << 2 | 1 << 1 | 0 << 0);  // INT_ANYRD_2CLEAR, BYPASS_EN
+    mpu.write(MPU_RA_INT_ENABLE, 0x01); // RAW_RDY_EN interrupt enable
+
+    acc->init = mpuAccInit;
+    acc->read = mpuAccRead;
+    gyro->init = mpuGyroInit;
+    gyro->read = mpuGyroRead;	
 }
 
 static void mpuAccInit(sensor_align_e align)
@@ -211,7 +219,7 @@ static void mpuGyroRead(int16_t *gyroData)
     data[0] = (int16_t)((buf[0] << 8) | buf[1]) / 4;
     data[1] = (int16_t)((buf[2] << 8) | buf[3]) / 4;
     data[2] = (int16_t)((buf[4] << 8) | buf[5]) / 4;
-
+	
     alignSensors(data, gyroData, gyroAlign);
 }
 

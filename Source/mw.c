@@ -58,6 +58,7 @@ uint16_t GPS_ground_course = 0;     // degrees * 10
 
 void annexCode(void)
 {
+	static uint32_t calibratedAccTime;
 	int32_t axis, prop1, prop2;
 	int32_t tmp, tmp2;
 	
@@ -100,7 +101,7 @@ void annexCode(void)
     tmp = (uint32_t)(tmp - mcfg.mincheck) * 1000 / (2000 - mcfg.mincheck);       // [MINCHECK;2000] -> [0;1000]
     tmp2 = tmp / 100;
     rcCommand[THROTTLE] = lookupThrottleRC[tmp2] + (tmp - tmp2 * 100) * (lookupThrottleRC[tmp2 + 1] - lookupThrottleRC[tmp2]) / 100;    // [0;1000] -> expo -> [MINTHROTTLE;MAXTHROTTLE]
-
+	
 	if (f.HEADFREE_MODE) {
         float radDiff = (heading - headFreeModeHold) * M_PI / 180.0f;
         float cosDiff = cosf(radDiff);
@@ -108,6 +109,16 @@ void annexCode(void)
         int16_t rcCommand_PITCH = rcCommand[PITCH] * cosDiff + rcCommand[ROLL] * sinDiff;
         rcCommand[ROLL] = rcCommand[ROLL] * cosDiff - rcCommand[PITCH] * sinDiff;
         rcCommand[PITCH] = rcCommand_PITCH;
+    }
+	
+	if ((int32_t)(currentTime - calibratedAccTime) >= 0) {
+        if (!f.SMALL_ANGLE) {
+            f.ACC_CALIBRATED = 0; // the multi uses ACC and is not calibrated or is too much inclinated
+            LED0_TOGGLE;
+            calibratedAccTime = currentTime + 500000;
+        } else {
+            f.ACC_CALIBRATED = 1;
+        }
     }
 	
 	serialCom();
@@ -125,7 +136,7 @@ void loop(void)
 	
 	bool rcReady = false;
 	bool isThrottleLow = false;
-	togle_PF4;
+
 	if (((int32_t)(currentTime - rcTime) >= 0) || rcReady) {				// 50Hz or data driven
 		rcReady = false;
 		rcTime = currentTime + 20000;
@@ -176,6 +187,7 @@ void loop(void)
 				}
 			}
 			else {											// actions during not armed						
+				i = 0;
 				if (rcSticks == THR_LO + YAW_LO + PIT_LO + ROL_CE) {
 					calibratingG = CALIBRATING_GYRO_CYCLES;													// GYRO calibration
 				}
@@ -378,9 +390,7 @@ void loop(void)
 	
 	if (mcfg.looptime == 0 || (int32_t)(currentTime - loopTime) >= 0) {
         loopTime = currentTime + mcfg.looptime;
-		computeIMU();
-		
-		
+		computeIMU();		
 		
         // Measure loop rate just afer reading the sensors
         currentTime = micros();
@@ -433,14 +443,14 @@ static void mwArm(void)
 	if (calibratingG == 0 && f.ACC_CALIBRATED)
 	{
 		if (!f.ARMED)        												  // arm now!
-    {
+		{
 			f.ARMED = 1;
 //			buzzer(BUZZER_ARMING);
 		}
 	} else if (!f.ARMED)
 	{
 //    blinkLED(2, 255, 1);
-  }
+	}
 }
 
 static void mwDisarm(void)
