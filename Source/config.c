@@ -71,7 +71,6 @@ uint8_t checkFirstTime(bool reset)
 	{		
 		resetConf();		
 		writeEEPROM(0, false);
-		readEEPROM();
 		return 1;
 	}
 	return 0;
@@ -218,6 +217,12 @@ static void resetConf(void)
 	}	
 }
 
+void loadAndActivateConfig(void)
+{
+    readEEPROM();
+    activateConfig();
+}
+
 void writeEEPROM (uint8_t b, uint8_t updateProfile)
 {
 	uint8_t chk = 0;
@@ -258,7 +263,8 @@ void writeEEPROM (uint8_t b, uint8_t updateProfile)
 	}
 	
 	// re-read written data
-//    loadAndActivateConfig();
+    loadAndActivateConfig();
+	
     if (b)
 		{
 //			blinkLED(15, 20, 1);

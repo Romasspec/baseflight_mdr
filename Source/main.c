@@ -63,7 +63,6 @@ int main(void)
 	}
 	
 	initBoardAlignment();
-	serialInit (mcfg.serial_baudrate);
 	// We have these sensors; SENSORS_SET defined in board.h depending on hardware platform
 	sensorsSet(SENSORS_SET);
 	// drop out any sensors that don't seem to work, init all the others. halt if gyro is dead.
@@ -90,7 +89,7 @@ int main(void)
 	
 	mixerInit();
 	
-//	serialInit (mcfg.serial_baudrate);
+	serialInit (mcfg.serial_baudrate);
 	
 	// when using airplane/wing mixer, servo/motor outputs are remapped
 	if (mcfg.mixerConfiguration == MULTITYPE_AIRPLANE || mcfg.mixerConfiguration == MULTITYPE_FLYING_WING || mcfg.mixerConfiguration == MULTITYPE_CUSTOM_PLANE)
