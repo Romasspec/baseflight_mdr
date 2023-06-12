@@ -4,9 +4,9 @@
 #define PULSE_MIN   			(750)       // minimum PWM pulse width which is considered valid
 #define PULSE_MAX   			(2250)      // maximum PWM pulse width which is considered valid
 #define MAX_PPM_INPUTS 			8
-#define MAX_MOTORS  8
-#define MAX_SERVOS  8
-#define MAX_PWM_INPUTS  8
+#define MAX_MOTORS  			8
+#define MAX_SERVOS  			8
+#define MAX_PWM_INPUTS 			8
 
 typedef struct drv_pwm_config_t {
     bool enableInput;
