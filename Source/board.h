@@ -29,18 +29,10 @@
 
 //#include "core_cm3.h"
 
-#define I2C_DEVICE (I2CDEV_1)
-#define SENSORS_SET (SENSOR_ACC | SENSOR_BARO) // | SENSOR_MAG
-//#define SENSORS_SET (0)
-
 #define togle_PB7	MDR_PORTB->RXTX ^= PORT_Pin_7
 #define togle_PD2	MDR_PORTD->RXTX ^= PORT_Pin_2
 #define togle_PF4	MDR_PORTF->RXTX ^= PORT_Pin_4
 #define togle_PF6	MDR_PORTF->RXTX ^= PORT_Pin_6
-
-#define toggle_BUZER	togle_PB7
-
-//#define GPS
 
 typedef uint16_t (*rcReadRawDataPtr)(uint8_t chan);        // used by receiver driver to return channel data
 typedef void (*pidControllerFuncPtr)(void);                // pid controller function prototype
@@ -146,8 +138,26 @@ typedef struct sensor_t {
 #if defined(NAZE)
 // Afroflight32
 
-#define MAG
+#define BEEP_PORT   MDR_PORTB
+#define BEEP_PIN    PORT_Pin_4 // PB4 (Buzzer)
+
+
+#define GYRO
+#define ACC
+//#define MAG
+//#define BARO
+//#define GPS
+//#define LEDRING
+//#define SONAR
+#define BUZZER
+//#define LED0
+//#define LED1
+//#define INVERTER
 #define MOTOR_PWM_RATE 400
+
+#define SENSORS_SET (SENSOR_ACC | SENSOR_BARO) // | SENSOR_MAG
+//#define SENSORS_SET (0)
+#define I2C_DEVICE (I2CDEV_1)
 
 #include "eeprom.h"
 #include "drv_system.h"
@@ -186,10 +196,10 @@ typedef struct sensor_t {
 #define LED1_ON
 #endif
 
-#ifdef BEEP_GPIO
-#define BEEP_TOGGLE              //digitalToggle(BEEP_GPIO, BEEP_PIN);
-#define BEEP_OFF                 //systemBeep(false);
-#define BEEP_ON                  //systemBeep(true);
+#ifdef BEEP_PORT
+#define BEEP_TOGGLE              digitalToggle(BEEP_PORT, BEEP_PIN)
+#define BEEP_OFF                 systemBeep(false)
+#define BEEP_ON                  systemBeep(true)
 #else
 #define BEEP_TOGGLE              ;
 #define BEEP_OFF                 ;

@@ -9,6 +9,13 @@ static volatile uint32_t usTicks = 0;
 // current uptime for 1kHz systick timer. will rollover after 49 days. hopefully we won't care.
 static volatile uint32_t sysTickUptime = 0;
 
+#ifdef BUZZER
+void systemBeep(bool onoff);
+static void beepRev4(bool onoff);
+static void beepRev5(bool onoff);
+void (*systemBeepPtr)(bool onoff) = NULL;
+#endif
+
 // SysTick
 void SysTick_Handler(void)
 {
@@ -102,6 +109,14 @@ void hardwareInit(void)
 	PORT_DeInit (MDR_PORTE);
 	PORT_DeInit (MDR_PORTF);
 	
+	PORT_StructInit (&Port_Initstructure);
+	// Configure PORTB pins  for output
+	Port_Initstructure.PORT_Pin		= BEEP_PIN;
+	Port_Initstructure.PORT_OE		= PORT_OE_OUT;
+	Port_Initstructure.PORT_FUNC	= PORT_FUNC_PORT;
+	Port_Initstructure.PORT_MODE	= PORT_MODE_DIGITAL;
+	Port_Initstructure.PORT_SPEED	= PORT_SPEED_SLOW;
+	PORT_Init (BEEP_PORT, &Port_Initstructure);
 	
 //	PORT_StructInit (&Port_Initstructure);
 //	// Configure PORTB pins  for output
@@ -190,6 +205,14 @@ void hardwareInit(void)
 	// SysTick
 	SysTick_Config (SystemCoreClock/1000);
 	
+#ifdef BUZZER
+    // Configure gpio
+    // rev5 needs inverted beeper. oops.
+	
+    systemBeepPtr = beepRev5;
+    BEEP_OFF;
+#endif
+	
 //	canInit();
 //	uartInit();	
 }
@@ -209,3 +232,27 @@ void systemReset(bool toBootloader)
 	MDR_WWDG->CR	= 0x000000F1;
 }
 
+#ifdef BUZZER
+static void beepRev4(bool onoff)
+{
+    if (onoff) {
+        digitalLo(BEEP_PORT, BEEP_PIN);
+    } else {
+        digitalHi(BEEP_PORT, BEEP_PIN);
+    }
+}
+
+static void beepRev5(bool onoff)
+{
+    if (onoff) {
+        digitalHi(BEEP_PORT, BEEP_PIN);
+    } else {
+        digitalLo(BEEP_PORT, BEEP_PIN);
+    }
+}
+
+void systemBeep(bool onoff)
+{
+    systemBeepPtr(onoff);
+}
+#endif

@@ -457,6 +457,11 @@ void featureClear(uint32_t mask);
 void featureClearAll(void);
 uint32_t featureMask(void);
 
+// buzzer
+void systemBeep(bool onoff);
+
+//cli
+
 // gps
 void gpsInit(uint8_t baudrate);
 void gpsThread(void);
