@@ -238,6 +238,7 @@ void writeEEPROM (uint8_t b, uint8_t updateProfile)
 	// when updateProfile = true, we copy contents of cfg to global configuration. when false, only profile number is updated, and then that profile is loaded on readEEPROM()
     if (updateProfile) {
         // copy current in-memory profile to stored configuration
+		blinkLED(3, 20, 2);
         memcpy(&mcfg.profile[mcfg.current_profile], &cfg, sizeof(config_t));
     }
 	
