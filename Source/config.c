@@ -242,33 +242,30 @@ void writeEEPROM (uint8_t b, uint8_t updateProfile)
     }
 	
 	// recalculate checksum before writing
-	for (p = (const uint8_t *)&mcfg; p < ((const uint8_t *)&mcfg + sizeof(master_t)); p++)
-	{
+	for (p = (const uint8_t *)&mcfg; p < ((const uint8_t *)&mcfg + sizeof(master_t)); p++) {
 		chk ^= *p;
 	}
 	mcfg.chk = chk;
 	
 	FLASH_ErasePage (FLASH_WRITE_ADDR, EEPROM_Info_Bank_Select);
 	//FLASH_ErasePage (FLASH_WRITE_ADDR + FLASH_PAGE_SIZE, EEPROM_Info_Bank_Select);
-	for (uint16_t i=0; i < sizeof(master_t); i+=4)
-	{		
+	
+	for (uint16_t i=0; i < sizeof(master_t); i+=4) {		
 		//FLASH_ProgramByte (FLASH_WRITE_ADDR+i, *((uint8_t *)&mcfg + i), EEPROM_Info_Bank_Select);
 		FLASH_ProgramWord (FLASH_WRITE_ADDR + i, *(uint32_t*)((uint8_t*)&mcfg + i), EEPROM_Info_Bank_Select);
 		togle_PF6;
 	}
 	 
-	if (!validEEPROM())
-	{
+	if (!validEEPROM())	{
 		failureMode(10);
 	}
 	
 	// re-read written data
     loadAndActivateConfig();
 	
-    if (b)
-		{
-//			blinkLED(15, 20, 1);
-		}        
+    if (b) {
+		blinkLED(15, 20, 1);
+	}        
 }
 
 void readEEPROM(void)
@@ -276,8 +273,7 @@ void readEEPROM(void)
    	 memset (&mcfg, 0xBB, sizeof (master_t));
 	 
 	 // Read flash
-	 for (uint16_t i=0; i < sizeof (master_t); i ++)
-	 {	
+	 for (uint16_t i=0; i < sizeof (master_t); i ++) {	
 		 togle_PF4;
 		 FLASH_ReadByte (FLASH_WRITE_ADDR + i, (uint8_t*)&mcfg + i, EEPROM_Info_Bank_Select);		 
 	 }

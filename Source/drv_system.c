@@ -55,19 +55,16 @@ void delay(uint32_t ms)
 
 void failureMode(uint8_t mode)
 {
-//		LED1_OFF;
-// 		LED0_ON;
-    while (1)
-		{
-//     LED1_TOGGLE;
-//     LED0_TOGGLE;
-       delay(475 * mode - 2);
-
-//     BEEP_ON			
-       delay(25);
-
-//     BEEP_OFF;
-		}
+		LED1_OFF;
+ 		LED0_ON;
+    while (1) {
+		LED1_TOGGLE;
+		LED0_TOGGLE;
+		delay(475 * mode - 2);
+		BEEP_ON;			
+		delay(25);
+		BEEP_OFF;
+	}
 }
 
 void hardwareInit(void)

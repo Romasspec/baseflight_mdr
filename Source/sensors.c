@@ -223,7 +223,7 @@ static void GYRO_Common(void)
 //                }
 				
 				gyroZero[axis] = (g[axis] + (CALIBRATING_GYRO_CYCLES / 2)) / CALIBRATING_GYRO_CYCLES;
- //               blinkLED(10, 15, 1);
+				blinkLED(10, 15, 1);
 			}
 		}
 		calibratingG--;

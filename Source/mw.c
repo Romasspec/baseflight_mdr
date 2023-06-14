@@ -54,7 +54,20 @@ uint8_t GPS_update = 0;             // it's a binary toogle to distinct a GPS po
 int16_t GPS_angle[3] = { 0, 0, 0 }; // it's the angles that must be applied for GPS correction
 uint16_t GPS_ground_course = 0;     // degrees * 10
 
+void blinkLED(uint8_t num, uint8_t wait, uint8_t repeat)
+{
+    uint8_t i, r;
 
+    for (r = 0; r < repeat; r++) {
+        for (i = 0; i < num; i++) {
+            LED0_TOGGLE;            // switch LEDPIN state
+            BEEP_ON;
+            delay(wait);
+            BEEP_OFF;
+        }
+        delay(60);
+    }
+}
 
 void annexCode(void)
 {
@@ -206,7 +219,7 @@ void loop(void)
 				if (i) {
 					mcfg.current_profile = i - 1;
 					writeEEPROM(0, false);
-//						blinkLED(2, 40, i);
+					blinkLED(2, 40, i);
 					// TODO alarmArray[0] = i;
 				}
 				
@@ -447,9 +460,8 @@ static void mwArm(void)
 			f.ARMED = 1;
 //			buzzer(BUZZER_ARMING);
 		}
-	} else if (!f.ARMED)
-	{
-//    blinkLED(2, 255, 1);
+	} else if (!f.ARMED) {
+		blinkLED(2, 255, 1);
 	}
 }
 
