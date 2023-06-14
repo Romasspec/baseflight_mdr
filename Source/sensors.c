@@ -29,6 +29,9 @@ bool sensorsAutodetect(void)
 	// Autodetect Invensense acc/gyro hardware
 	haveMpu = mpuDetect(&acc, &gyro, &mpu_config);
 	
+	if(!haveMpu) {
+		return false;
+	}
 	// Accelerometer. Fuck it. Let user break shit.
 
 	switch (mcfg.acc_hardware)
