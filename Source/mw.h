@@ -144,6 +144,7 @@ typedef struct mixerRules_t {
 
 #define CALIBRATING_GYRO_CYCLES             1000
 #define CALIBRATING_ACC_CYCLES              400
+#define CALIBRATING_BARO_CYCLES             200
 
 #define ROL_LO (1 << (2 * ROLL))
 #define ROL_CE (3 << (2 * ROLL))
@@ -381,6 +382,7 @@ extern core_t core;
 extern int16_t rcData[RC_CHANS];
 extern uint32_t previousTime;
 extern uint16_t calibratingA;
+extern uint16_t calibratingB;
 extern uint16_t calibratingG;
 extern flags_t f;
 extern int16_t heading, magHold;
