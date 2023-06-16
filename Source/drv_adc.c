@@ -16,16 +16,16 @@ void adcInit(drv_adc_config_t *init)
 	DMA_ChannelInitTypeDef dma_ch;
 	int numChannels = 1;
 
- // configure always-present battery index (ADC4)
-	adcConfig[ADC_BATTERY].adcChannel = ADC_CH_ADC4;
+ // configure always-present battery index (ADC2)
+	adcConfig[ADC_BATTERY].adcChannel = ADC_CH_ADC2;
 	adcConfig[ADC_BATTERY].dmaIndex = numChannels - 1;
 
  // optional ADC5 input on rev.5 hardware
-	if (1) {
-			numChannels++;
-			adcConfig[ADC_EXTERNAL_PAD].adcChannel = ADC_CH_ADC5;
-			adcConfig[ADC_EXTERNAL_PAD].dmaIndex = numChannels - 1;
-	}
+//	if (1) {
+//			numChannels++;
+//			adcConfig[ADC_EXTERNAL_PAD].adcChannel = ADC_CH_ADC5;
+//			adcConfig[ADC_EXTERNAL_PAD].dmaIndex = numChannels - 1;
+//	}
 	// another channel can be stolen from PWM for current measurement or other things
 	if (init->powerAdcChannel > 0) {
 			numChannels++;
@@ -79,7 +79,7 @@ void adcInit(drv_adc_config_t *init)
 	adcx.ADC_SamplingMode = ADC_SAMPLING_MODE_CICLIC_CONV;
 	adcx.ADC_ChannelSwitching = numChannels > 1 ? ADC_CH_SWITCHING_Enable : ADC_CH_SWITCHING_Disable;
 	adcx.ADC_ChannelNumber = ADC_CH_ADC2;
-	adcx.ADC_Channels = ADC_CH_ADC2_MSK | ADC_CH_ADC3_MSK;
+	adcx.ADC_Channels = ADC_CH_ADC2_MSK | ADC_CH_ADC3_MSK | ADC_CH_ADC4_MSK;
 	adcx.ADC_LevelControl = ADC_LEVEL_CONTROL_Disable;
 	adcx.ADC_LowLevel = 0;
 	adcx.ADC_HighLevel = 0;

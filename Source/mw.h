@@ -3,6 +3,9 @@
 #include "can.h"
 #include "uart.h"
 
+/* for VBAT monitoring frequency */
+#define VBATFREQ 6        // to read battery voltage - nth number of loop iterations
+
 #define  VERSION  231
 
 
@@ -427,11 +430,14 @@ void computeIMU(void);
 void blinkLED(uint8_t num, uint8_t wait, uint8_t repeat);
 
 // sensors
-void batteryInit(void);
 bool sensorsAutodetect(void);
-void Mag_init(void);
-void Gyro_getADC(void);
+void batteryInit(void);
+uint16_t batteryAdcToVoltage(uint16_t src);
+int32_t currentSensorToCentiamps(uint16_t src);
 void ACC_getADC(void);
+
+void Gyro_getADC(void);
+void Mag_init(void);
 
 // Output
 void mixerInit(void);

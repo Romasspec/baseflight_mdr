@@ -75,6 +75,13 @@ void annexCode(void)
 	int32_t axis, prop1, prop2;
 	int32_t tmp, tmp2;
 	
+	// vbat shit
+    static uint8_t vbatTimer = 0;
+    static int32_t vbatRaw = 0;
+    static int32_t amperageRaw = 0;
+    static int64_t mAhdrawnRaw = 0;
+    static int32_t vbatCycleTime = 0;
+	
 	prop2 = 128;
 	
 	for (axis = 0; axis < 3; axis++) {
@@ -123,6 +130,55 @@ void annexCode(void)
         rcCommand[ROLL] = rcCommand[ROLL] * cosDiff - rcCommand[PITCH] * sinDiff;
         rcCommand[PITCH] = rcCommand_PITCH;
     }
+	
+	if ((int32_t)(currentTime - calibratedAccTime) >= 0) {
+        if (!f.SMALL_ANGLE) {
+            f.ACC_CALIBRATED = 0; // the multi uses ACC and is not calibrated or is too much inclinated
+            LED0_TOGGLE;
+            calibratedAccTime = currentTime + 500000;
+        } else {
+            f.ACC_CALIBRATED = 1;
+        }
+    }
+	
+	if (feature(FEATURE_VBAT)) {
+        vbatCycleTime += cycleTime;
+        if (!(++vbatTimer % VBATFREQ)) {
+            vbatRaw -= vbatRaw / 8;
+            vbatRaw += adcGetChannel(ADC_BATTERY);
+            vbat = batteryAdcToVoltage(vbatRaw / 8);
+
+            if (mcfg.power_adc_channel > 0) {
+                amperageRaw -= amperageRaw / 8;
+                amperageRaw += adcGetChannel(ADC_EXTERNAL_CURRENT);
+                amperage = currentSensorToCentiamps(amperageRaw / 8);
+                mAhdrawnRaw += (amperage * vbatCycleTime) / 1000;
+                mAhdrawn = mAhdrawnRaw / (3600 * 100);
+                vbatCycleTime = 0;
+            }
+
+        }
+        // Buzzers for low and critical battery levels
+        if (vbat <= batteryCriticalVoltage) {
+//            buzzer(BUZZER_BAT_CRIT_LOW);     // Critically low battery
+		} else if (vbat <= batteryWarningVoltage) {
+//            buzzer(BUZZER_BAT_LOW);     // low battery
+		}
+    }
+    // update buzzer handler
+//    buzzerUpdate();
+	
+	if ((calibratingA > 0 && sensors(SENSOR_ACC)) || (calibratingG > 0)) {      // Calibration phasis
+        LED0_TOGGLE;
+    } else {
+        if (f.ACC_CALIBRATED)
+            LED0_OFF;
+        if (f.ARMED)
+            LED0_ON;
+#ifndef TELEMETRY
+//        checkTelemetryState();
+#endif
+	}
 	
 	if ((int32_t)(currentTime - calibratedAccTime) >= 0) {
         if (!f.SMALL_ANGLE) {
