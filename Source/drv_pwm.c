@@ -223,7 +223,6 @@ static void ppmCallback(uint8_t port, uint16_t capture)
 	static uint16_t now;
 	static uint16_t last = 0;
 	static uint8_t chan = 0;
-	togle_PF6;
 	last = now;
 	now = capture;
 	diff = now - last;

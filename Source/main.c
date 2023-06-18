@@ -24,17 +24,18 @@ int main(void)
 	checkFirstTime(false);
 
 	// sleep for 100ms
-	BEEP_ON;
-	delay(100);
-	BEEP_OFF;
+	
 	activateConfig();
 
 	i2cInit(I2C_DEVICE);
-
+	
 	// configure power ADC
-	if (mcfg.power_adc_channel > 0 && (mcfg.power_adc_channel == 1 || mcfg.power_adc_channel == 9 || mcfg.power_adc_channel == 5))
+	if (mcfg.power_adc_channel > 0 && (mcfg.power_adc_channel == 1 || mcfg.power_adc_channel == 9 || mcfg.power_adc_channel == 5)) {
 			adc_params.powerAdcChannel = mcfg.power_adc_channel;
-	else {
+			BEEP_ON;
+			delay(100);
+			BEEP_OFF;
+	} else {
 			adc_params.powerAdcChannel = 0;
 			mcfg.power_adc_channel = 0;
 	}
@@ -140,7 +141,7 @@ int main(void)
 	
 	previousTime = micros();
 	
-	uartTransmit((uint8_t*)(&previousTime), 4);
+//	uartTransmit((uint8_t*)(&previousTime), 4);
 	calibratingG = CALIBRATING_GYRO_CYCLES;
 	
 	f.SMALL_ANGLE = 1;
