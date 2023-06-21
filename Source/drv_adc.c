@@ -100,8 +100,7 @@ uint16_t adcGetChannel(uint8_t channel)
 {
 	uint8_t i;
 	for (i=0; i < 4; i++) {
-		if (((adcValues[adcConfig[i].dmaIndex]>>16)&0x1F) == adcConfig[channel].adcChannel) {
-			togle_PF6;
+		if (((adcValues[adcConfig[i].dmaIndex]>>16)&0x1F) == adcConfig[channel].adcChannel) {			
 			return (uint16_t) (adcValues[adcConfig[i].dmaIndex]);
 		}
 	}
@@ -110,6 +109,13 @@ uint16_t adcGetChannel(uint8_t channel)
 
 void DMA_IRQHandler (void)
 {
-	dma.DMA_CycleSize = 4;
-	DMA_Init (DMA_Channel_ADC1, &dma_ch);
+	DMA_CtrlDataTypeDef *ptr_adc_dma;										// Указатель на адрес непосредственно на таблицу структур, которую использует DMA
+																			// Вычисляем адрес структуры конкретного канала DMA
+	ptr_adc_dma = (DMA_CtrlDataTypeDef*) (MDR_DMA->CTRL_BASE_PTR + (DMA_Channel_ADC1 * sizeof(DMA_CtrlDataTypeDef)));
+	
+	if ((ptr_adc_dma->DMA_Control & 0x3FF0) == 0) {							// тут накладываем маску на поле числа передач DMA и если передачи кончились
+		ptr_adc_dma->DMA_Control |= ((ADC_CHANNEL_MAX-1) << 4)|(1 << 0);	// инициализируем колличество передач заново а так же устанавливаем режим работы DMA
+		MDR_DMA->CHNL_ENABLE_SET = (1 << DMA_Channel_ADC1);					// включаем канал, т.к. после окончания всех передач он отключается
+		togle_PF6;
+	}
 }

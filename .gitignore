@@ -3,4 +3,5 @@ $ cat .gitignore
 *.dep
 *.Romas
 *.krivko
+*.uvopt
 bin/
