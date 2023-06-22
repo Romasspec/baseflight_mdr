@@ -86,11 +86,9 @@ int main(void)
 	serialInit (mcfg.serial_baudrate);
 	
 	// when using airplane/wing mixer, servo/motor outputs are remapped
-	if (mcfg.mixerConfiguration == MULTITYPE_AIRPLANE || mcfg.mixerConfiguration == MULTITYPE_FLYING_WING || mcfg.mixerConfiguration == MULTITYPE_CUSTOM_PLANE)
-	{
+	if (mcfg.mixerConfiguration == MULTITYPE_AIRPLANE || mcfg.mixerConfiguration == MULTITYPE_FLYING_WING || mcfg.mixerConfiguration == MULTITYPE_CUSTOM_PLANE) {
 		pwm_params.airplane = true;
-	} else
-	{
+	} else {
 		pwm_params.airplane = false;
 	}
 			
@@ -115,8 +113,7 @@ int main(void)
 	pwmInit(&pwm_params);
 	core.numServos = pwm_params.numServos;
 	
-	for (i = 0; i < RC_CHANS; i++)
-	{
+	for (i = 0; i < RC_CHANS; i++) {
 		rcData[i] = 1502;
 	}
 
@@ -127,15 +124,13 @@ int main(void)
 	gpsInit(mcfg.gps_baudrate);
 #endif
 	
-	if (feature(FEATURE_PPM))
-	{
+	if (feature(FEATURE_PPM)) {
 		core.numRCChannels = MAX_PPM_INPUTS;
 	}
 
 	core.numAuxChannels = constrain ((mcfg.rc_channel_count - 4), 4, 8);
 	
-	if (feature(FEATURE_TELEMETRY))
-	{
+	if (feature(FEATURE_TELEMETRY))	{
 //		initTelemetry();
 	}	
 	
@@ -143,6 +138,7 @@ int main(void)
 	
 //	uartTransmit((uint8_t*)(&previousTime), 4);
 	calibratingG = CALIBRATING_GYRO_CYCLES;
+	calibratingB = CALIBRATING_BARO_CYCLES;
 	
 	f.SMALL_ANGLE = 1;
 	

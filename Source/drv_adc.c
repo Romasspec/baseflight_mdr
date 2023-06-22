@@ -82,7 +82,7 @@ void adcInit(drv_adc_config_t *init)
 	adcx.ADC_SamplingMode = ADC_SAMPLING_MODE_CICLIC_CONV;
 	adcx.ADC_ChannelSwitching = numChannels > 1 ? ADC_CH_SWITCHING_Enable : ADC_CH_SWITCHING_Disable;
 	adcx.ADC_ChannelNumber = ADC_CH_ADC2;
-	adcx.ADC_Channels = ADC_CH_ADC2_MSK | ADC_CH_ADC3_MSK | ADC_CH_ADC4_MSK | ADC_CH_ADC7_MSK;
+	adcx.ADC_Channels = ADC_CH_ADC2_MSK | ADC_CH_ADC3_MSK | ADC_CH_ADC4_MSK | ADC_CH_ADC5_MSK;
 	adcx.ADC_LevelControl = ADC_LEVEL_CONTROL_Disable;
 	adcx.ADC_LowLevel = 0;
 	adcx.ADC_HighLevel = 0;
