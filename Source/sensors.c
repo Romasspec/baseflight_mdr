@@ -2,6 +2,7 @@
 #include "mw.h"
 
 uint16_t calibratingA = 0;      // the calibration is done is the main loop. Calibrating decreases at each cycle down to 0, then we enter in a normal mode.
+uint16_t calibratingB = 0;      // baro calibration = get new ground pressure value
 uint16_t calibratingG = 0;
 uint16_t acc_1G = 256;          // this is the 1G measured acceleration.
 int16_t heading, magHold;
@@ -21,6 +22,7 @@ sensor_t mag;                       // mag access functions
 
 bool sensorsAutodetect(void)
 {
+	int16_t deg, min;
 	mpu_params_t mpu_config;
 	bool haveMpu = false;
 	
@@ -60,6 +62,53 @@ bool sensorsAutodetect(void)
 	
 	// this is safe because either mpu6050 or mpu3050 or lg3d20 sets it, and in case of fail, we never get here.
 	gyro.init(mcfg.gyro_align);
+	
+#ifdef MAG
+retryMag:
+    switch (mcfg.mag_hardware) {
+        case MAG_NONE: // disable MAG
+            sensorsClear(SENSOR_MAG);
+            break;
+        case MAG_DEFAULT: // autodetect
+
+        case MAG_HMC5883L:
+            if (hmc5883lDetect(&mag)) {
+                magHardware = MAG_HMC5883L;
+                if (mcfg.mag_hardware == MAG_HMC5883L)
+                    break;
+            }
+            ; // fallthrough
+
+#ifdef NAZE
+        case MAG_AK8975:
+            if (ak8975detect(&mag)) {
+                magHardware = MAG_AK8975;
+                if (mcfg.mag_hardware == MAG_AK8975)
+                    break;
+            }
+#endif
+    }
+	
+    // Found anything? Check if user fucked up or mag is really missing.
+    if (magHardware == MAG_DEFAULT) {
+        if (mcfg.mag_hardware > MAG_DEFAULT && mcfg.mag_hardware < MAG_NONE) {
+            // Nothing was found and we have a forced sensor type. Stupid user probably chose a sensor that isn't present.
+            mcfg.mag_hardware = MAG_DEFAULT;
+            goto retryMag;
+        } else {
+            // No mag present
+            sensorsClear(SENSOR_MAG);
+        }
+    }
+#endif
+	
+	// calculate magnetic declination
+    deg = cfg.mag_declination / 100;
+    min = cfg.mag_declination % 100;
+    if (sensors(SENSOR_MAG))
+        magneticDeclination = (deg + ((float)min * (1.0f / 60.0f))) * 10; // heading is in 0.1deg units
+    else
+        magneticDeclination = 0.0f;
 	
 	return haveMpu;
 }

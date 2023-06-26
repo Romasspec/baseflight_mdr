@@ -597,6 +597,16 @@
               <FileType>1</FileType>
               <FilePath>..\Source\rxmsp.c</FilePath>
             </File>
+            <File>
+              <FileName>drv_hmc5883l.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Source\drv_hmc5883l.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_hmc5883l.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Source\drv_hmc5883l.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

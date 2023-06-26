@@ -133,6 +133,7 @@ static void resetConf(void)
 	mcfg.mincheck = 1100;
 	mcfg.maxcheck = 1900;	
 	mcfg.acc_hardware = ACC_MPU6050;     // default/autodetect
+	mcfg.mag_hardware = MAG_HMC5883L;
 	mcfg.rc_channel_count = 8;
 	mcfg.looptime = 3500;
 	mcfg.rssi_aux_channel = 0;
@@ -317,6 +318,12 @@ void sensorsSet(uint32_t mask)
 {
     enabledSensors |= mask;
 }
+
+void sensorsClear(uint32_t mask)
+{
+    enabledSensors &= ~(mask);
+}
+
 
 bool feature(uint32_t mask)
 {

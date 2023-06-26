@@ -144,7 +144,7 @@ typedef struct sensor_t {
 
 #define GYRO
 #define ACC
-//#define MAG
+#define MAG
 //#define BARO
 //#define GPS
 //#define LEDRING
@@ -155,7 +155,7 @@ typedef struct sensor_t {
 //#define INVERTER
 #define MOTOR_PWM_RATE 400
 
-#define SENSORS_SET (SENSOR_ACC | SENSOR_BARO) // | SENSOR_MAG
+#define SENSORS_SET (SENSOR_ACC | SENSOR_BARO) | SENSOR_MAG
 //#define SENSORS_SET (0)
 #define I2C_DEVICE (I2CDEV_1)
 
@@ -169,6 +169,7 @@ typedef struct sensor_t {
 #include "drv_uart.h"
 #include "drv_timer.h"
 #include "drv_pwm.h"
+#include "drv_hmc5883l.h"
 
 #else
 #error TARGET NOT DEFINED!
