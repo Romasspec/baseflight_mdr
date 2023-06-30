@@ -42,24 +42,27 @@ void imuInit(void)
 	Mag_init();
 #endif
 }
-extern bool sensorEnable;
+
 void computeIMU(void)
 {
 	static int16_t gyroYawSmooth = 0;
-	if (sensorEnable) {
+	if (sensors(SENSOR_GYRO)) {
 		Gyro_getADC();
+	} else {
+		gyroADC[YAW] = 0;
+		gyroADC[ROLL] = 0;
+		gyroADC[PITCH] = 0;
 	}
-	if (sensors(SENSOR_ACC)) {
-		if (sensorEnable) {
-			ACC_getADC();
-		}
-        getEstimatedAttitude();
+	
+	if (sensors(SENSOR_ACC)) {		
+		ACC_getADC();		
+//        getEstimatedAttitude();
     } else {
         accADC[X] = 0;
         accADC[Y] = 0;
         accADC[Z] = 0;
     }
-	
+	getEstimatedAttitude();
 	gyroData[YAW] = gyroADC[YAW];
     gyroData[ROLL] = gyroADC[ROLL];
     gyroData[PITCH] = gyroADC[PITCH];

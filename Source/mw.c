@@ -255,11 +255,34 @@ void loop(void)
 					mwDisarm();
 				}
 			}
-			else {											// actions during not armed						
+			else {											// actions during not armed
 				i = 0;
+				// GYRO calibration
 				if (rcSticks == THR_LO + YAW_LO + PIT_LO + ROL_CE) {
-					calibratingG = CALIBRATING_GYRO_CYCLES;													// GYRO calibration
-				}
+					calibratingG = CALIBRATING_GYRO_CYCLES;
+					
+#ifdef GPS
+                    if (feature(FEATURE_GPS))
+                        GPS_reset_home_position();
+#endif
+                    if (sensors(SENSOR_BARO))
+                        calibratingB = 10; // calibrate baro to new ground level (10 * 25 ms = ~250 ms non blocking)
+                    if (!sensors(SENSOR_MAG))
+                        heading = 0; // reset heading to zero after gyro calibration
+                    // Inflight ACC Calibration
+				} else if (feature(FEATURE_INFLIGHT_ACC_CAL) && (rcSticks == THR_LO + YAW_LO + PIT_HI + ROL_HI)) {
+//                    if (AccInflightCalibrationMeasurementDone) {        // trigger saving into eeprom after landing
+//                        AccInflightCalibrationMeasurementDone = false;
+//                        AccInflightCalibrationSavetoEEProm = true;
+//                    } else {
+//                        AccInflightCalibrationArmed = !AccInflightCalibrationArmed;
+//                        if (AccInflightCalibrationArmed) {
+//                            buzzer(BUZZER_ACC_CALIBRATION);
+//                        } else {
+//                            buzzer(BUZZER_ACC_CALIBRATION_FAIL);
+//                        }
+//                    }
+                }
 				
 				// Multiple configuration profiles
 				if (rcSticks == THR_LO + YAW_LO + PIT_CE + ROL_LO) {       		   	// ROLL left  -> Profile 1
@@ -333,10 +356,14 @@ void loop(void)
 				errorAngleI[PITCH] = 0;
 				f.ANGLE_MODE = 1;
 			}
-			else {
-        f.ANGLE_MODE = 0;   // failsafe support
-        f.FW_FAILSAFE_RTH_ENABLE = 0;
-      }
+			if (feature(FEATURE_FW_FAILSAFE_RTH)) {
+//                if ((failsafeCnt > 5 * cfg.failsafe_delay) && sensors(SENSOR_GPS)) {
+                   f.FW_FAILSAFE_RTH_ENABLE = 1;
+//                }
+            }
+		} else {
+			f.ANGLE_MODE = 0;   // failsafe support
+			f.FW_FAILSAFE_RTH_ENABLE = 0;
 		}		
 		
 		if (rcOptions[BOXHORIZON]) {
@@ -347,8 +374,7 @@ void loop(void)
 				errorAngleI[PITCH] = 0;
 				f.HORIZON_MODE = 1;
 			}
-		}
-		else {
+		} else {
 			f.HORIZON_MODE = 0;
 		}
 
@@ -358,8 +384,7 @@ void loop(void)
 		
 		if (f.ANGLE_MODE || f.HORIZON_MODE) {
 			LED1_ON;
-		}
-		else {
+		} else {
 			LED1_OFF;
 		}
 		
@@ -370,8 +395,7 @@ void loop(void)
 					f.MAG_MODE = 1;
 					magHold = heading;
 				}
-			}
-			else {
+			} else {
 				f.MAG_MODE = 0;
 			}
 			
@@ -379,8 +403,7 @@ void loop(void)
 				if (!f.HEADFREE_MODE) {
 					f.HEADFREE_MODE = 1;
 				}
-			}
-			else {
+			} else {
 				f.HEADFREE_MODE = 0;
 			}
 			
@@ -389,6 +412,12 @@ void loop(void)
 			}
 		}
 #endif
+		
+		if (rcOptions[BOXPASSTHRU] && !f.FW_FAILSAFE_RTH_ENABLE) {
+            f.PASSTHRU_MODE = 1;
+        } else {
+            f.PASSTHRU_MODE = 0;
+        }
 	
 		// When armed and motors aren't spinning. Make warning beeps so that accidentally won't lose fingers...
 		// Also disarm board after 5 sec so users without buzzer won't lose fingers.
@@ -407,15 +436,14 @@ void loop(void)
 				disarmTime = 0;
 			}
 		}		
-	}
-	else { 						// not rc loop
+	} else { 						// not rc loop
 		static int taskOrder = 0;   // never call all function in the same loop, to avoid high delay spikes
 		switch (taskOrder) {
 		case 0:
 			taskOrder++;
 
 #ifdef MAG
-			if (sensors(SENSOR_MAG) /*&& Mag_getADC()*/)
+			if (sensors(SENSOR_MAG) && Mag_getADC())
 		break;
 #endif
 								
@@ -469,6 +497,21 @@ void loop(void)
 		
 		annexCode();
 		
+#ifdef MAG
+        if (sensors(SENSOR_MAG)) {
+            if (abs(rcCommand[YAW]) < 70 && f.MAG_MODE) {
+                int16_t dif = heading - magHold;
+                if (dif <= -180)
+                    dif += 360;
+                if (dif >= +180)
+                    dif -= 360;
+                dif *= -mcfg.yaw_control_direction;
+                if (f.SMALL_ANGLE)
+                    rcCommand[YAW] -= dif * cfg.P8[PIDMAG] / 30;    // 18 deg
+            } else
+                magHold = heading;
+        }
+#endif
 		// PID - note this is function pointer set by setPIDController()
         pid_controller();
 		

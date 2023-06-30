@@ -2,7 +2,6 @@
 #include "mw.h"
 
 extern rcReadRawDataPtr rcReadRawFunc;
-bool sensorEnable = false;
 
 // receiver read function
 extern uint16_t pwmReadRawRC(uint8_t chan);
@@ -51,8 +50,7 @@ int main(void)
 	adcInit (&adc_params);
 	
 	// Check battery type/voltage
-	if (feature(FEATURE_VBAT))
-	{
+	if (feature(FEATURE_VBAT)) {
 		batteryInit();
 	}
 	
@@ -63,7 +61,7 @@ int main(void)
 	sensorsOK = sensorsAutodetect();
 	
 	// if gyro was not detected due to whatever reason, we give up now.
-	sensorEnable = sensorsOK;
+
 //	if (!sensorsOK) failureMode(3);
 	
 	LED1_ON;

@@ -32,7 +32,8 @@ bool sensorsAutodetect(void)
 	haveMpu = mpuDetect(&acc, &gyro, &mpu_config);
 	
 	if(!haveMpu) {
-		return false;
+		sensorsClear(SENSOR_GYRO | SENSOR_ACC);
+		//return false;
 	}
 	// Accelerometer. Fuck it. Let user break shit.
 
@@ -55,13 +56,14 @@ bool sensorsAutodetect(void)
 	}
 	
 	// Now time to init things, acc first
-	if (sensors(SENSOR_ACC))
-	{
+	if (sensors(SENSOR_ACC)) {
 		acc.init(mcfg.acc_align);
 	}
 	
 	// this is safe because either mpu6050 or mpu3050 or lg3d20 sets it, and in case of fail, we never get here.
-	gyro.init(mcfg.gyro_align);
+	if (sensors(SENSOR_GYRO)) {
+		gyro.init(mcfg.gyro_align);
+	}
 	
 #ifdef MAG
 retryMag:
@@ -81,11 +83,11 @@ retryMag:
 
 #ifdef NAZE
         case MAG_AK8975:
-            if (ak8975detect(&mag)) {
-                magHardware = MAG_AK8975;
-                if (mcfg.mag_hardware == MAG_AK8975)
+//            if (ak8975detect(&mag)) {
+//                magHardware = MAG_AK8975;
+//                if (mcfg.mag_hardware == MAG_AK8975)
                     break;
-            }
+//            }
 #endif
     }
 	
@@ -161,60 +163,60 @@ void Mag_init(void)
 {
     // initialize and calibration. turn on led during mag calibration (calibration routine blinks it)
     LED1_ON;
-  //  mag.init(mcfg.mag_align);
+    mag.init(mcfg.mag_align);
     LED1_OFF;
     magInit = 1;
 }
 
-//int Mag_getADC(void)
-//{
-//    static uint32_t t, tCal = 0;
-//    static int16_t magZeroTempMin[3];
-//    static int16_t magZeroTempMax[3];
-//    uint32_t axis;
+int Mag_getADC(void)
+{
+	static uint32_t t, tCal = 0;
+    static int16_t magZeroTempMin[3];
+    static int16_t magZeroTempMax[3];
+    uint32_t axis;
 
-//    if ((int32_t)(currentTime - t) < 0)
-//        return 0;                 //each read is spaced by 100ms
-//    t = currentTime + 100000;
+    if ((int32_t)(currentTime - t) < 0)
+        return 0;                 //each read is spaced by 100ms
+    t = currentTime + 100000;
 
-//    // Read mag sensor
-//    mag.read(magADC);
+    // Read mag sensor
+    mag.read(magADC);
 
-//    if (f.CALIBRATE_MAG) {
-//        tCal = t;
-//        for (axis = 0; axis < 3; axis++) {
-//            mcfg.magZero[axis] = 0;
-//            magZeroTempMin[axis] = magADC[axis];
-//            magZeroTempMax[axis] = magADC[axis];
-//        }
-//        f.CALIBRATE_MAG = 0;
-//    }
+    if (f.CALIBRATE_MAG) {
+        tCal = t;
+        for (axis = 0; axis < 3; axis++) {
+            mcfg.magZero[axis] = 0;
+            magZeroTempMin[axis] = magADC[axis];
+            magZeroTempMax[axis] = magADC[axis];
+        }
+        f.CALIBRATE_MAG = 0;
+    }
 
-//    if (magInit) {              // we apply offset only once mag calibration is done
-//        magADC[X] -= mcfg.magZero[X];
-//        magADC[Y] -= mcfg.magZero[Y];
-//        magADC[Z] -= mcfg.magZero[Z];
-//    }
+    if (magInit) {              // we apply offset only once mag calibration is done
+        magADC[X] -= mcfg.magZero[X];
+        magADC[Y] -= mcfg.magZero[Y];
+        magADC[Z] -= mcfg.magZero[Z];
+    }
 
-//    if (tCal != 0) {
-//        if ((t - tCal) < 30000000) {    // 30s: you have 30s to turn the multi in all directions
-//            LED0_TOGGLE;
-//            for (axis = 0; axis < 3; axis++) {
-//                if (magADC[axis] < magZeroTempMin[axis])
-//                    magZeroTempMin[axis] = magADC[axis];
-//                if (magADC[axis] > magZeroTempMax[axis])
-//                    magZeroTempMax[axis] = magADC[axis];
-//            }
-//        } else {
-//            tCal = 0;
-//            for (axis = 0; axis < 3; axis++)
-//                mcfg.magZero[axis] = (magZeroTempMin[axis] + magZeroTempMax[axis]) / 2; // Calculate offsets
-//            writeEEPROM(1, true);
-//        }
-//    }
+    if (tCal != 0) {
+        if ((t - tCal) < 30000000) {    // 30s: you have 30s to turn the multi in all directions
+            LED0_TOGGLE;
+            for (axis = 0; axis < 3; axis++) {
+                if (magADC[axis] < magZeroTempMin[axis])
+                    magZeroTempMin[axis] = magADC[axis];
+                if (magADC[axis] > magZeroTempMax[axis])
+                    magZeroTempMax[axis] = magADC[axis];
+            }
+        } else {
+            tCal = 0;
+            for (axis = 0; axis < 3; axis++)
+                mcfg.magZero[axis] = (magZeroTempMin[axis] + magZeroTempMax[axis]) / 2; // Calculate offsets
+            writeEEPROM(1, true);
+        }
+    }
 
-//    return 1;
-//}
+    return 1;
+}
 #endif
 
 typedef struct stdev_t {

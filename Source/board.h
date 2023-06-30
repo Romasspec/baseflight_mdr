@@ -155,7 +155,7 @@ typedef struct sensor_t {
 //#define INVERTER
 #define MOTOR_PWM_RATE 400
 
-#define SENSORS_SET (SENSOR_ACC | SENSOR_BARO) | SENSOR_MAG
+#define SENSORS_SET SENSOR_GYRO | SENSOR_ACC | SENSOR_BARO | SENSOR_MAG
 //#define SENSORS_SET (0)
 #define I2C_DEVICE (I2CDEV_1)
 

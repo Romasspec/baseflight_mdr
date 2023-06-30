@@ -439,6 +439,7 @@ void ACC_getADC(void);
 
 void Gyro_getADC(void);
 void Mag_init(void);
+int Mag_getADC(void);
 
 // Output
 void mixerInit(void);
