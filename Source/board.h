@@ -170,6 +170,7 @@ typedef struct sensor_t {
 #include "drv_timer.h"
 #include "drv_pwm.h"
 #include "drv_hmc5883l.h"
+#include "drv_qmc5883l.h"
 
 #else
 #error TARGET NOT DEFINED!
